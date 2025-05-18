@@ -65,6 +65,40 @@ docker run -d \
 
 <br />
 
+Environment Variables
+==================
+
+Requestrr supports the following environment variables to help you customize your deployment:
+
+#### `REQUESTRR_PORT`
+
+* **Description**: Sets the port the application listens on **inside** the container.
+* **Default**: `4545`
+* **Example**: `-e REQUESTRR_PORT=5000`
+
+#### `REQUESTRR_BASEURL`
+
+* **Description**: Defines a base URL path for Requestrr. Useful when deploying behind a reverse proxy with a subpath (e.g. `/requestrr`).
+* **Default**: `/`
+* **Example**: `-e REQUESTRR_BASEURL=/requestrr`
+
+#### Example Docker Command with Environment Variables
+
+```bash
+docker run -d \
+  --name requestrr \
+  -p 5000:5000 \
+  -v /opt/Requestrr/config:/root/config \
+  -e REQUESTRR_PORT=5000 \
+  -e REQUESTRR_BASEURL=/requestrr \
+  --restart=unless-stopped \
+  thomst08/requestrr
+```
+
+> ⚠️ **Note**: When setting `REQUESTRR_BASEURL`, make sure it matches your reverse proxy config if you're serving Requestrr under a subpath.
+
+<br />
+
 Build Instructions
 ==================
 

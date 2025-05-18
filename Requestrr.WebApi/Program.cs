@@ -23,8 +23,13 @@ namespace Requestrr.WebApi
 
         public static void Main(string[] args)
         {
-            string cliBaseUrl = null;
+            string cliBaseUrl = Environment.GetEnvironmentVariable("REQUESTRR_BASE_URL");
             int cliPort = -1;
+
+            if (int.TryParse(Environment.GetEnvironmentVariable("REQUESTRR_PORT"), out int portFromEnv))
+            {
+                cliPort = portFromEnv;
+            }
 
             for (int i = 0; i < args.Length; i++)
             {
@@ -136,9 +141,17 @@ namespace Requestrr.WebApi
                 });
             }
 
-            if (cliBaseUrl != null && cliBaseUrl != SettingsFile.Read().BaseUrl)
+            if (!string.IsNullOrEmpty(cliBaseUrl) && cliBaseUrl != (string)SettingsFile.Read().BaseUrl)
             {
-                Console.WriteLine("Changing base url from cli arguments...");
+                if (cliBaseUrl == "/")
+                    cliBaseUrl = string.Empty;
+                else if (cliBaseUrl.EndsWith("/"))
+                {
+                    Console.WriteLine("Error: Base URL cannot end in a slash '/'");
+                    return;
+                }
+
+                Console.WriteLine("Changing base url from environment or CLI arguments...");
                 SettingsFile.Write(settings =>
                 {
                     settings.BaseUrl = cliBaseUrl;

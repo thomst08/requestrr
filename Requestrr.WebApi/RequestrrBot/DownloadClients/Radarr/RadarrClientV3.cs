@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Requestrr.WebApi.config;
 using Requestrr.WebApi.Extensions;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using static Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr.RadarrClient;
 
@@ -413,9 +416,13 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
             return JsonConvert.DeserializeObject<JSONMovie>(jsonResponse);
         }
 
-        private Task<HttpResponseMessage> HttpGetAsync(string url)
+        private async Task<HttpResponseMessage> HttpGetAsync(string url)
         {
-            return HttpGetAsync(_httpClientFactory.CreateClient(), RadarrSettings, url);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await HttpGetAsync(_httpClientFactory.CreateClient(), RadarrSettings, url);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Radarr", "GET", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private static async Task<HttpResponseMessage> HttpGetAsync(HttpClient client, RadarrSettings settings, string url)
@@ -438,7 +445,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
             postRequest.Headers.Add("X-Api-Key", RadarrSettings.ApiKey);
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PostAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PostAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Radarr", "POST", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private async Task<HttpResponseMessage> HttpPutAsync(string url, string content)
@@ -449,7 +460,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
             putRequest.Headers.Add("X-Api-Key", RadarrSettings.ApiKey);
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PutAsync(url, putRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PutAsync(url, putRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Radarr", "PUT", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private static string GetBaseURL(RadarrSettings settings)

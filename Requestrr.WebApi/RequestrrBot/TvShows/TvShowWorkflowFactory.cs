@@ -21,6 +21,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private SonarrClient _sonarrDownloadClient;
+        private readonly ILogger _logger;
 
         public TvShowWorkflowFactory(
             TvShowsSettingsProvider tvShowsSettingsProvider,
@@ -28,7 +29,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             TvShowNotificationsRepository notificationsRepository,
             OverseerrClient overseerrClient,
             OmbiClient ombiDownloadClient,
-            SonarrClient radarrDownloadClient)
+            SonarrClient radarrDownloadClient,
+            ILogger logger)
         {
             _tvShowsSettingsProvider = tvShowsSettingsProvider;
             _settingsProvider = settingsProvider;
@@ -36,6 +38,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             _overseerrClient = overseerrClient;
             _ombiDownloadClient = ombiDownloadClient;
             _sonarrDownloadClient = radarrDownloadClient;
+            _logger = logger;
         }
 
         public TvShowRequestingWorkflow CreateRequestingWorkflow(DiscordInteraction interaction, int categoryId)

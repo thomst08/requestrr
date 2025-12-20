@@ -2,9 +2,11 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Requestrr.WebApi.Extensions;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Music;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -197,9 +199,13 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private Task<HttpResponseMessage> HttpGetAsync(string url)
+        private async Task<HttpResponseMessage> HttpGetAsync(string url)
         {
-            return HttpGetAsync(_httpClientFactory.CreateClient(), _lidarrSettings, url);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await HttpGetAsync(_httpClientFactory.CreateClient(), _lidarrSettings, url);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Lidarr", "GET", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
 
@@ -472,7 +478,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
             postRequest.Headers.Add("X-Api-Key", _lidarrSettings.ApiKey);
 
             HttpClient client = _httpClientFactory.CreateClient();
-            return await client.PostAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PostAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Lidarr", "POST", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
 
@@ -484,7 +494,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
             postRequest.Headers.Add("X-Api-Key", _lidarrSettings.ApiKey);
 
             HttpClient client = _httpClientFactory.CreateClient();
-            return await client.PutAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PutAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Lidarr", "PUT", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
 

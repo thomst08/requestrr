@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Music;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,9 +42,13 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Music
                 while (!_tokenSource.IsCancellationRequested)
                 {
                     Dictionary<string, HashSet<string>> currentRequests = new Dictionary<string, HashSet<string>>();
+                    var cycleStopwatch = Stopwatch.StartNew();
+                    var notifiedCount = 0;
+
                     try
                     {
                         currentRequests = _notificationsRepository.GetAllMusicNotifications();
+                        _logger.LogNotificationStart(Program.DiagnosticsSettings, "Music", currentRequests.Count);
                         Dictionary<string, MusicArtist> availableMusicArtists = await _musicSearcher.SearchAvailableMusicArtistAsync(new HashSet<string>(currentRequests.Keys), _tokenSource.Token);
 
                         foreach (KeyValuePair<string, HashSet<string>> request in currentRequests.Where(x => availableMusicArtists.ContainsKey(x.Key)))
@@ -53,6 +59,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Music
                             try
                             {
                                 HashSet<string> userNotified = await _notifier.NotifyArtistAsync(request.Value.ToArray(), availableMusicArtists[request.Key], _tokenSource.Token);
+                                notifiedCount += userNotified.Count;
 
                                 foreach (string userId in userNotified)
                                 {
@@ -69,6 +76,9 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Music
                     {
                         _logger.LogError(ex, "An error occurred while retrieving all music notification: " + ex.Message);
                     }
+
+                    cycleStopwatch.Stop();
+                    _logger.LogNotificationCycle(Program.DiagnosticsSettings, "Music", currentRequests.Count, currentRequests.Count, notifiedCount, cycleStopwatch.ElapsedMilliseconds);
 
                     await Task.Delay(TimeSpan.FromMinutes(1), _tokenSource.Token);
                 }

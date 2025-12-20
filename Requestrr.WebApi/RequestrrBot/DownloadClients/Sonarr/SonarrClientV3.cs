@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Requestrr.WebApi.config;
 using Requestrr.WebApi.Extensions;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 using static Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr.SonarrClient;
 
@@ -628,9 +631,13 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
             return $"{protocol}://{settings.Hostname}:{settings.Port}{settings.BaseUrl}/api/v{settings.Version}";
         }
 
-        private Task<HttpResponseMessage> HttpGetAsync(string url)
+        private async Task<HttpResponseMessage> HttpGetAsync(string url)
         {
-            return HttpGetAsync(_httpClientFactory.CreateClient(), SonarrSettings, url);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await HttpGetAsync(_httpClientFactory.CreateClient(), SonarrSettings, url);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Sonarr", "GET", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private static async Task<HttpResponseMessage> HttpGetAsync(HttpClient client, SonarrSettings settings, string url)
@@ -653,7 +660,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
             postRequest.Headers.Add("X-Api-Key", SonarrSettings.ApiKey);
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PostAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PostAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Sonarr", "POST", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private async Task<HttpResponseMessage> HttpPutAsync(string url, string content)
@@ -664,7 +675,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
             putRequest.Headers.Add("X-Api-Key", SonarrSettings.ApiKey);
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PutAsync(url, putRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PutAsync(url, putRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Sonarr", "PUT", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private class JSONEpisode

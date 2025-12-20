@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Requestrr.WebApi.Extensions;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 using static Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi.OmbiClient;
@@ -611,9 +613,13 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi
             return $"{protocol}://{settings.Hostname}:{settings.Port}{settings.BaseUrl}";
         }
 
-        private Task<HttpResponseMessage> HttpGetAsync(string url)
+        private async Task<HttpResponseMessage> HttpGetAsync(string url)
         {
-            return HttpGetAsync(_httpClientFactory.CreateClient(), OmbiSettings, url);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await HttpGetAsync(_httpClientFactory.CreateClient(), OmbiSettings, url);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Ombi", "GET", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private static async Task<HttpResponseMessage> HttpGetAsync(HttpClient client, OmbiSettings settings, string url)
@@ -642,7 +648,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi
             }
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PostAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PostAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Ombi", "POST", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private string Sanitize(string value)

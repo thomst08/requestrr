@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -50,6 +51,9 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.TvShows
                     try
                     {
                         await NotifyUsersInChannel(tvShow, seasonNumber, discordUserIds, userNotified, channel);
+
+                        // Add delay to prevent Discord rate limiting
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     catch (System.Exception ex)
                     {

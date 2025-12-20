@@ -16,17 +16,19 @@ namespace Requestrr.WebApi.RequestrrBot.Music
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly MusicNotificationsRepository _notificationsRepository;
         private LidarrClient _lidarrClient;
-
+        private readonly ILogger _logger;
 
         public MusicWorkflowFactory(
             DiscordSettingsProvider settingsProvider,
             MusicNotificationsRepository musicNotificationsRepository,
-            LidarrClient lidarrClient
+            LidarrClient lidarrClient,
+            ILogger logger
         )
         {
             _settingsProvider = settingsProvider;
             _notificationsRepository = musicNotificationsRepository;
             _lidarrClient = lidarrClient;
+            _logger = logger;
         }
 
 

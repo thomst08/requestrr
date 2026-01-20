@@ -39,11 +39,11 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
 
             if (result.WasDenied)
             {
-                await _userInterface.DisplayRequestDeniedForSeasonAsync(tvShow, selectedSeason);
+                await _userInterface.DisplayRequestDeniedForSeasonAsync(request, tvShow, selectedSeason);
             }
             else
             {
-                await _userInterface.DisplayRequestSuccessForSeasonAsync(tvShow, selectedSeason);
+                await _userInterface.DisplayRequestSuccessForSeasonAsync(request, tvShow, selectedSeason);
                 await _tvShowNotificationWorkflow.NotifyForNewRequestAsync(request.User.UserId, tvShow, selectedSeason);
             }
         }

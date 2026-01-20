@@ -111,16 +111,16 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
-        public async Task DisplayRequestDeniedForSeasonAsync(TvShow tvShow, TvSeason selectedSeason)
+        public async Task DisplayRequestDeniedForSeasonAsync(TvShowRequest request, TvShow tvShow, TvSeason selectedSeason)
         {
             var embed = GenerateTvShowDetailsAsync(tvShow);
             var deniedButton = new DiscordButtonComponent(ButtonStyle.Danger, $"0/1/0", Language.Current.DiscordCommandRequestButtonDenied);
-            var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(deniedButton).WithContent(Language.Current.DiscordCommandTvRequestDenied);
+            var builder = (await AddPreviousDropdownsAsync(tvShow, request, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(deniedButton).WithContent(Language.Current.DiscordCommandTvRequestDenied);
 
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
-        public async Task DisplayRequestSuccessForSeasonAsync(TvShow tvShow, TvSeason requestedSeason)
+        public async Task DisplayRequestSuccessForSeasonAsync(TvShowRequest request, TvShow tvShow, TvSeason requestedSeason)
         {
             var embed = GenerateTvShowDetailsAsync(tvShow);
 
@@ -131,7 +131,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                     : Language.Current.DiscordCommandTvRequestSuccessSeason.ReplaceTokens(tvShow, requestedSeason.SeasonNumber);
 
             var successButton = new DiscordButtonComponent(ButtonStyle.Success, $"0/1/0", Language.Current.DiscordCommandRequestButtonSuccess);
-            var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(successButton).WithContent(message);
+            var builder = (await AddPreviousDropdownsAsync(tvShow, request, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(successButton).WithContent(message);
 
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
@@ -144,10 +144,32 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                     ? Language.Current.DiscordCommandTvRequestConfirmFutureSeasons
                     : Language.Current.DiscordCommandTvRequestConfirmSeason.ReplaceTokens(LanguageTokens.SeasonNumber, season.SeasonNumber.ToString());
 
-            var requestButton = new DiscordButtonComponent(ButtonStyle.Primary, $"TRC/{_interactionContext.User.Id}/{request.CategoryId}/{tvShow.TheTvDbId}/{season.SeasonNumber}", Language.Current.DiscordCommandRequestButton);
+            if (request.QualityProfileId.HasValue)
+            {
+                var qualityName = request.QualityProfileName ?? request.QualityProfileId.Value.ToString();
+                message += "\n" + Language.Current.DiscordCommandMediaSelectedQuality.ReplaceTokens(LanguageTokens.QualityProfileName, qualityName);
+            }
+
+            var buttonId = $"TRC/{_interactionContext.User.Id}/{request.CategoryId}/{tvShow.TheTvDbId}/{season.SeasonNumber}";
+            if (request.QualityProfileId.HasValue)
+            {
+                buttonId += $"/{request.QualityProfileId.Value}";
+            }
+            
+            var requestButton = new DiscordButtonComponent(ButtonStyle.Primary, buttonId, Language.Current.DiscordCommandRequestButton);
 
             var embed = GenerateTvShowDetailsAsync(tvShow);
-            var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(requestButton).WithContent(message);
+            var builder = (await AddPreviousDropdownsAsync(tvShow, request, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(requestButton).WithContent(message);
+            await _interactionContext.EditOriginalResponseAsync(builder);
+        }
+
+        public async Task DisplayQualitySelectionAsync(TvShowRequest request, TvShow tvShow, TvSeason tvSeason, IReadOnlyList<QualityProfile> qualityProfiles)
+        {
+            var embed = GenerateTvShowDetailsAsync(tvShow);
+            var options = qualityProfiles.Select(x => new DiscordSelectComponentOption(x.Name, $"{request.CategoryId}/{tvShow.TheTvDbId}/{tvSeason.SeasonNumber}/{x.Id}")).ToList();
+            var qualitySelector = new DiscordSelectComponent($"TQS/{_interactionContext.User.Id}/{request.CategoryId}", LimitStringSize(Language.Current.DiscordCommandMediaSelectQuality), options);
+
+            var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(qualitySelector).WithContent(Language.Current.DiscordCommandMediaSelectQuality);
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
@@ -392,7 +414,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             }
         }
 
-        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(TvShow tvShow, DiscordWebhookBuilder builder)
+        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(TvShow tvShow, TvShowRequest request, DiscordWebhookBuilder builder)
         {
             var selectors = (await _interactionContext.GetOriginalResponseAsync()).FilterComponents<DiscordSelectComponent>();
             DiscordSelectComponent previousTvSelector = selectors.FirstOrDefault(x => x.CustomId.StartsWith("TRS", true, null));
@@ -420,9 +442,24 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
 
                         try
                         {
-                            defaultSelectedValue = _interactionContext.Data.Values.Any()
-                           ? currentOptions.Single(x => x.Value == _interactionContext.Data.Values.Single()).Label
-                           : currentOptions.Single(x => x.Value == string.Join("/", _interactionContext.Data.CustomId.Split("/").Skip(2))).Label;
+                            var selectedValue = _interactionContext.Data.Values.Any()
+                                ? _interactionContext.Data.Values.Single()
+                                : string.Join("/", _interactionContext.Data.CustomId.Split("/").Skip(2));
+
+                            // Handle quality selection format: categoryId/tvDbId/seasonNumber/qualityId
+                            // Season selector format: categoryId/tvDbId/seasonNumber
+                            if (selectedValue.Split('/').Length >= 4)
+                            {
+                                // Extract first 3 parts to match season selector format
+                                var parts = selectedValue.Split('/');
+                                var reducedValue = $"{parts[0]}/{parts[1]}/{parts[2]}"; // categoryId/tvDbId/seasonNumber
+                                if (currentOptions.Any(x => x.Value == reducedValue))
+                                {
+                                    selectedValue = reducedValue;
+                                }
+                            }
+
+                            defaultSelectedValue = currentOptions.Single(x => x.Value == selectedValue).Label;
                         }
                         catch { }
 
@@ -432,7 +469,25 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 }
             }
 
+            // Add quality selector back if quality profile was selected
+            DiscordSelectComponent previousQualitySelector = selectors.FirstOrDefault(x => x.CustomId.StartsWith("TQS", true, null));
+            if (previousQualitySelector != null && request != null && request.QualityProfileId.HasValue)
+            {
+                var qualityOptions = previousQualitySelector.Options;
+                var selectedQualityLabel = qualityOptions.FirstOrDefault(x => x.Value.EndsWith($"/{request.QualityProfileId.Value}"))?.Label 
+                    ?? request.QualityProfileName 
+                    ?? request.QualityProfileId.Value.ToString();
+                
+                var qualitySelector = new DiscordSelectComponent(previousQualitySelector.CustomId, LimitStringSize(selectedQualityLabel), qualityOptions);
+                builder.AddComponents(qualitySelector);
+            }
+
             return builder;
+        }
+
+        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(TvShow tvShow, DiscordWebhookBuilder builder)
+        {
+            return await AddPreviousDropdownsAsync(tvShow, null, builder);
         }
 
         private string GetFormatedTvShowTitle(SearchedTvShow tvShow)

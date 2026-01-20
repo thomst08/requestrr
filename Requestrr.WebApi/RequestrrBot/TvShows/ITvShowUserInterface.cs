@@ -19,11 +19,12 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         Task DisplayTvShowIssueModalAsync(TvShowRequest request, TvShow tvShow, string issue);
         Task CompleteTvShowIssueModalRequestAsync(TvShow tvShow, bool success);
         Task DisplayMultiSeasonSelectionAsync(TvShowRequest request, TvShow tvShow, TvSeason[] tvSeasons);
-        Task DisplayRequestDeniedForSeasonAsync(TvShow tvShow, TvSeason selectedSeason);
-        Task DisplayRequestSuccessForSeasonAsync(TvShow tvShow, TvSeason selectedSeason);
+        Task DisplayRequestDeniedForSeasonAsync(TvShowRequest request, TvShow tvShow, TvSeason selectedSeason);
+        Task DisplayRequestSuccessForSeasonAsync(TvShowRequest request, TvShow tvShow, TvSeason selectedSeason);
         Task WarnAlreadyNotifiedForSeasonsAsync(TvShow tvShow, TvSeason selectedSeason);
         Task AskForSeasonNotificationRequestAsync(TvShow tvShow, TvSeason selectedSeason);
         Task DisplayNotificationSuccessForSeasonAsync(TvShow tvShow, TvSeason selectedSeason);
+        Task DisplayQualitySelectionAsync(TvShowRequest request, TvShow tvShow, TvSeason tvSeason, IReadOnlyList<QualityProfile> qualityProfiles);
     }
 
     public class TvShowSelection
@@ -35,6 +36,12 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
     public class TvSeasonsSelection
     {
         public Optional<TvSeason> SelectedSeason { get; set; }
+        public bool IsCancelled { get; set; }
+    }
+
+    public class QualitySelection
+    {
+        public Optional<QualityProfile> SelectedQualityProfile { get; set; }
         public bool IsCancelled { get; set; }
     }
 }

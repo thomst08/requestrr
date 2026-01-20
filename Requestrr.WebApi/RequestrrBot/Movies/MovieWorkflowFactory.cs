@@ -40,12 +40,17 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         {
             var settings = _settingsProvider.Provide();
 
+            IQualityProfileProvider qualityProfileProvider = GetMovieClient<IMovieSearcher>(settings) is IQualityProfileProvider provider
+                ? provider
+                : new NullQualityProfileProvider();
+
             return new MovieRequestingWorkflow(new MovieUserRequester(interaction.User.Id.ToString(),  interaction.User.Username),
                                                 categoryId,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
                                                 new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
-                                                CreateMovieNotificationWorkflow(interaction, settings));
+                                                CreateMovieNotificationWorkflow(interaction, settings),
+                                                qualityProfileProvider);
         }
 
 
@@ -59,12 +64,17 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         {
             var settings = _settingsProvider.Provide();
 
+            IQualityProfileProvider qualityProfileProvider = GetMovieClient<IMovieSearcher>(settings) is IQualityProfileProvider provider
+                ? provider
+                : new NullQualityProfileProvider();
+
             return new MovieIssueWorkflow(new MovieUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                                                 categoryId,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
                                                 new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
-                                                CreateMovieNotificationWorkflow(interaction, settings));
+                                                CreateMovieNotificationWorkflow(interaction, settings),
+                                                qualityProfileProvider);
         }
 
         public IMovieNotificationWorkflow CreateNotificationWorkflow(DiscordInteraction interaction)

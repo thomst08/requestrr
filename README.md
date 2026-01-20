@@ -1,3 +1,7 @@
+### slmlm2009 Fork: This fork adds the quality profile selection to the chat client bot
+![new_feature](https://i.imgur.com/WX5maPW.png)
+=================
+
 [![Paypal](https://img.shields.io/badge/Paypal-Donate-success?style=for-the-badge&logo=paypal)](https://www.paypal.com/donate/?business=QT2Y72ABMYJNG&no_recurring=0&currency_code=AUD) 
 [![Discord](https://img.shields.io/discord/674782527139086350?color=7289DA&label=Discord&style=for-the-badge&logo=discord)](https://discord.gg/atjrUen5fJ)
 [![DockerHub](https://img.shields.io/badge/Docker-Hub-%23099cec?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thomst08/requestrr)
@@ -112,3 +116,4 @@ Thank you list
 
 Thank you goes out to the following people:
 - [@darkalfx]( https://github.com/darkalfx ) - Creator of Requestrr, without this person, Requestrr would not exist.
+

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using Requestrr.WebApi.RequestrrBot.Movies;
 
 namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
 {
-    public class RadarrClient : IMovieRequester, IMovieSearcher
+    public class RadarrClient : IMovieRequester, IMovieSearcher, IQualityProfileProvider
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<RadarrClient> _logger;
@@ -90,6 +91,19 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
         public Task<MovieRequestResult> RequestMovieAsync(MovieRequest request, Movie movie)
         {
             return CreateInstance<IMovieRequester>().RequestMovieAsync(request, movie);
+        }
+
+        public async Task<IReadOnlyList<QualityProfile>> GetQualityProfilesAsync()
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var settings = _settingsProvider.Provide();
+            var profiles = await GetProfiles(httpClient, _logger, settings);
+            
+            return profiles.Select(p => new QualityProfile
+            {
+                Id = p.id,
+                Name = p.name
+            }).ToList();
         }
 
         private T CreateInstance<T>() where T : class

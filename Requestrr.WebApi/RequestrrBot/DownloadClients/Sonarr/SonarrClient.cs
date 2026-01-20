@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using Requestrr.WebApi.RequestrrBot.TvShows;
 
 namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
 {
-    public class SonarrClient : ITvShowSearcher, ITvShowRequester
+    public class SonarrClient : ITvShowSearcher, ITvShowRequester, IQualityProfileProvider
     {
         private IHttpClientFactory _httpClientFactory;
         private readonly ILogger<SonarrClient> _logger;
@@ -133,6 +134,19 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
         public Task<TvShowRequestResult> RequestTvShowAsync(TvShowRequest request, TvShow tvShow, TvSeason season)
         {
             return CreateInstance<ITvShowRequester>().RequestTvShowAsync(request, tvShow, season);
+        }
+
+        public async Task<IReadOnlyList<QualityProfile>> GetQualityProfilesAsync()
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+            var settings = _settingsProvider.Provide();
+            var profiles = await GetProfiles(httpClient, _logger, settings);
+            
+            return profiles.Select(p => new QualityProfile
+            {
+                Id = p.id,
+                Name = p.name
+            }).ToList();
         }
 
         private T CreateInstance<T>() where T : class

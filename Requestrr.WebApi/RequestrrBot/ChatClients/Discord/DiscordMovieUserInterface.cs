@@ -91,9 +91,30 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 }
             }
 
-            var requestButton = new DiscordButtonComponent(ButtonStyle.Primary, $"MRC/{_interactionContext.User.Id}/{request.CategoryId}/{movie.TheMovieDbId}", Language.Current.DiscordCommandRequestButton);
+            if (request.QualityProfileId.HasValue)
+            {
+                var qualityName = request.QualityProfileName ?? request.QualityProfileId.Value.ToString();
+                message += "\n" + Language.Current.DiscordCommandMediaSelectedQuality.ReplaceTokens(LanguageTokens.QualityProfileName, qualityName);
+            }
 
-            var builder = (await AddPreviousDropdownsAsync(movie, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(requestButton).WithContent(message);
+            var buttonId = $"MRC/{_interactionContext.User.Id}/{request.CategoryId}/{movie.TheMovieDbId}";
+            if (request.QualityProfileId.HasValue)
+            {
+                buttonId += $"/{request.QualityProfileId.Value}";
+            }
+
+            var requestButton = new DiscordButtonComponent(ButtonStyle.Primary, buttonId, Language.Current.DiscordCommandRequestButton);
+
+            var builder = (await AddPreviousDropdownsAsync(movie, request, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(requestButton).WithContent(message);
+            await _interactionContext.EditOriginalResponseAsync(builder);
+        }
+
+        public async Task DisplayQualitySelectionAsync(MovieRequest request, Movie movie, IReadOnlyList<QualityProfile> qualityProfiles)
+        {
+            var options = qualityProfiles.Select(x => new DiscordSelectComponentOption(x.Name, $"{request.CategoryId}/{movie.TheMovieDbId}/{x.Id}")).ToList();
+            var qualitySelector = new DiscordSelectComponent($"MQS/{_interactionContext.User.Id}/{request.CategoryId}", LimitStringSize(Language.Current.DiscordCommandMediaSelectQuality), options);
+
+            var builder = (await AddPreviousDropdownsAsync(movie, request, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(qualitySelector).WithContent(Language.Current.DiscordCommandMediaSelectQuality);
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
@@ -256,11 +277,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
-        public async Task DisplayRequestSuccessAsync(Movie movie)
+        public async Task DisplayRequestSuccessAsync(MovieRequest request, Movie movie)
         {
             var successButton = new DiscordButtonComponent(ButtonStyle.Success, $"0/1/0", Language.Current.DiscordCommandRequestButtonSuccess);
 
-            var builder = (await AddPreviousDropdownsAsync(movie, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(successButton).WithContent(Language.Current.DiscordCommandMovieRequestSuccess.ReplaceTokens(movie));
+            var builder = (await AddPreviousDropdownsAsync(movie, request, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(successButton).WithContent(Language.Current.DiscordCommandMovieRequestSuccess.ReplaceTokens(movie));
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
@@ -280,11 +301,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
-        public async Task DisplayRequestDeniedAsync(Movie movie)
+        public async Task DisplayRequestDeniedAsync(MovieRequest request, Movie movie)
         {
             var deniedButton = new DiscordButtonComponent(ButtonStyle.Danger, $"0/1/0", Language.Current.DiscordCommandRequestButtonDenied);
 
-            var builder = (await AddPreviousDropdownsAsync(movie, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(deniedButton).WithContent(Language.Current.DiscordCommandMovieRequestDenied);
+            var builder = (await AddPreviousDropdownsAsync(movie, request, new DiscordWebhookBuilder().AddEmbed(await GenerateMovieDetailsAsync(movie, _movieSearcher)))).AddComponents(deniedButton).WithContent(Language.Current.DiscordCommandMovieRequestDenied);
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
@@ -296,9 +317,10 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             await _interactionContext.EditOriginalResponseAsync(builder);
         }
 
-        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(Movie movie, DiscordWebhookBuilder builder)
+        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(Movie movie, MovieRequest request, DiscordWebhookBuilder builder)
         {
-            var previousMovieSelector = (DiscordSelectComponent)(await _interactionContext.GetOriginalResponseAsync()).FilterComponents<DiscordSelectComponent>().FirstOrDefault();
+            var selectors = (await _interactionContext.GetOriginalResponseAsync()).FilterComponents<DiscordSelectComponent>();
+            var previousMovieSelector = selectors.FirstOrDefault(x => x.CustomId.StartsWith("MRS", true, null));
 
             if (previousMovieSelector != null)
             {
@@ -306,7 +328,25 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 builder.AddComponents(movieSelector);
             }
 
+            // Add quality selector back if quality profile was selected
+            var previousQualitySelector = selectors.FirstOrDefault(x => x.CustomId.StartsWith("MQS", true, null));
+            if (previousQualitySelector != null && request != null && request.QualityProfileId.HasValue)
+            {
+                var qualityOptions = previousQualitySelector.Options;
+                var selectedQualityLabel = qualityOptions.FirstOrDefault(x => x.Value.EndsWith($"/{request.QualityProfileId.Value}"))?.Label 
+                    ?? request.QualityProfileName 
+                    ?? request.QualityProfileId.Value.ToString();
+                
+                var qualitySelector = new DiscordSelectComponent(previousQualitySelector.CustomId, LimitStringSize(selectedQualityLabel), qualityOptions);
+                builder.AddComponents(qualitySelector);
+            }
+
             return builder;
+        }
+
+        private async Task<DiscordWebhookBuilder> AddPreviousDropdownsAsync(Movie movie, DiscordWebhookBuilder builder)
+        {
+            return await AddPreviousDropdownsAsync(movie, null, builder);
         }
     }
 }

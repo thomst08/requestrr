@@ -47,6 +47,9 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             if(searcher is ITvShowIssueSearcher)
                 issueSearcher = (ITvShowIssueSearcher)searcher;
 
+            IQualityProfileProvider qualityProfileProvider = GetTvShowClient<ITvShowSearcher>(settings) is IQualityProfileProvider provider
+                ? provider
+                : new NullQualityProfileProvider();
 
             return new TvShowRequestingWorkflow(new TvShowUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                                                 categoryId,
@@ -54,7 +57,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                                                 GetTvShowClient<ITvShowRequester>(settings),
                                                 new DiscordTvShowUserInterface(interaction, issueSearcher),
                                                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
-                                                _tvShowsSettingsProvider.Provide());
+                                                _tvShowsSettingsProvider.Provide(),
+                                                qualityProfileProvider);
         }
         
         
@@ -69,13 +73,18 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                 issueSearcher = (ITvShowIssueSearcher)searcher;
             }
 
+            IQualityProfileProvider qualityProfileProvider = GetTvShowClient<ITvShowSearcher>(settings) is IQualityProfileProvider provider
+                ? provider
+                : new NullQualityProfileProvider();
+
             return new TvShowIssueWorkflow(new TvShowUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                 categoryId,
                 GetTvShowClient<ITvShowSearcher>(settings),
                 GetTvShowClient<ITvShowRequester>(settings),
                 new DiscordTvShowUserInterface(interaction, issueSearcher),
                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
-                _tvShowsSettingsProvider.Provide());
+                _tvShowsSettingsProvider.Provide(),
+                qualityProfileProvider);
         }
         
 

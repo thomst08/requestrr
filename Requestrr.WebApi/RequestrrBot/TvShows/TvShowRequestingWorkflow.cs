@@ -15,6 +15,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         private readonly ITvShowUserInterface _userInterface;
         private readonly ITvShowNotificationWorkflow _tvShowNotificationWorkflow;
         private readonly TvShowsSettings _settings;
+        private readonly IQualityProfileProvider _qualityProfileProvider;
 
         public TvShowRequestingWorkflow(
             TvShowUserRequester user,
@@ -23,7 +24,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             ITvShowRequester requester,
             ITvShowUserInterface userInterface,
             ITvShowNotificationWorkflow tvShowNotificationWorkflow,
-            TvShowsSettings settings)
+            TvShowsSettings settings,
+            IQualityProfileProvider qualityProfileProvider)
         {
             _user = user;
             _categoryId = categoryId;
@@ -32,6 +34,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             _userInterface = userInterface;
             _tvShowNotificationWorkflow = tvShowNotificationWorkflow;
             _settings = settings;
+            _qualityProfileProvider = qualityProfileProvider;
         }
 
         public async Task SearchTvShowAsync(string tvShowName)
@@ -155,43 +158,83 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
         private async Task HandleSeasonSelectionAsync(TvShow tvShow, TvSeason selectedSeason)
         {
+            var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+            
+            if (qualityProfiles.Count > 1)
+            {
+                await _userInterface.DisplayQualitySelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, selectedSeason, qualityProfiles);
+            }
+            else
+            {
+                await ProcessSeasonSelection(new TvShowRequest(_user, _categoryId), tvShow, selectedSeason);
+            }
+        }
+
+        public async Task HandleQualitySelectionAsync(int tvDbId, int seasonNumber, int qualityProfileId)
+        {
+            var tvShow = await GetTvShowAsync(tvDbId);
+            var selectedSeason = tvShow.Seasons.Single(x => x.SeasonNumber == seasonNumber);
+            var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+            var selectedProfile = qualityProfiles.FirstOrDefault(x => x.Id == qualityProfileId);
+
+            var request = new TvShowRequest(_user, _categoryId)
+            {
+                QualityProfileId = qualityProfileId,
+                QualityProfileName = selectedProfile?.Name
+            };
+
+            await ProcessSeasonSelection(request, tvShow, selectedSeason);
+        }
+
+        private async Task ProcessSeasonSelection(TvShowRequest request, TvShow tvShow, TvSeason selectedSeason)
+        {
             switch (selectedSeason)
             {
                 case FutureTvSeasons futureTvSeasons:
                     await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, futureTvSeasons);
+                        .HandleSelectionAsync(request, tvShow, futureTvSeasons);
                     break;
                 case AllTvSeasons allTvSeasons:
                     await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, allTvSeasons);
+                        .HandleSelectionAsync(request, tvShow, allTvSeasons);
                     break;
                 case NormalTvSeason normalTvSeason:
                     await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, normalTvSeason);
+                        .HandleSelectionAsync(request, tvShow, normalTvSeason);
                     break;
                 default:
                     throw new Exception($"Could not handle season of type \"{selectedSeason.GetType().Name}\"");
             }
         }
 
-        public async Task RequestSeasonSelectionAsync(int tvDbId, int seasonNumber)
+        public async Task RequestSeasonSelectionAsync(int tvDbId, int seasonNumber, int? qualityProfileId = null)
         {
             var tvShow = await GetTvShowAsync(tvDbId);
             var selectedSeason = tvShow.Seasons.Single(x => x.SeasonNumber == seasonNumber);
+
+            var request = new TvShowRequest(_user, _categoryId);
+            
+            if (qualityProfileId.HasValue)
+            {
+                var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+                var selectedProfile = qualityProfiles.FirstOrDefault(x => x.Id == qualityProfileId.Value);
+                request.QualityProfileId = qualityProfileId;
+                request.QualityProfileName = selectedProfile?.Name;
+            }
 
             switch (selectedSeason)
             {
                 case FutureTvSeasons futureTvSeasons:
                     await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, futureTvSeasons);
+                        .RequestAsync(request, tvShow, futureTvSeasons);
                     break;
                 case AllTvSeasons allTvSeasons:
                     await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, allTvSeasons);
+                        .RequestAsync(request, tvShow, allTvSeasons);
                     break;
                 case NormalTvSeason normalTvSeason:
                     await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, normalTvSeason);
+                        .RequestAsync(request, tvShow, normalTvSeason);
                     break;
                 default:
                     throw new Exception($"Could not handle season of type \"{selectedSeason.GetType().Name}\"");

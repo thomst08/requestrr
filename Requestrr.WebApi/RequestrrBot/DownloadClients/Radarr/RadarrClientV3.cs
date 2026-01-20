@@ -259,10 +259,12 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
 
             var jsonMovie = await SearchMovieByMovieDbId(int.Parse(movie.TheMovieDbId));
 
+            var qualityProfileId = request.QualityProfileId ?? category.ProfileId;
+
             var response = await HttpPostAsync($"{BaseURL}/movie", JsonConvert.SerializeObject(new
             {
                 title = jsonMovie.title,
-                qualityProfileId = category.ProfileId,
+                qualityProfileId = qualityProfileId,
                 titleSlug = jsonMovie.titleSlug,
                 monitored = RadarrSettings.MonitorNewRequests,
                 tags = JToken.FromObject(category.Tags),
@@ -312,8 +314,10 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
                 throw new System.Exception($"An error occurred while requesting movie \"{movie.Title}\" from Radarr, could not find category with id {request.CategoryId}");
             }
 
+            var qualityProfileId = request.QualityProfileId ?? category.ProfileId;
+
             radarrMovie.tags = JToken.FromObject(category.Tags);
-            radarrMovie.qualityProfileId = category.ProfileId;
+            radarrMovie.qualityProfileId = qualityProfileId;
             radarrMovie.minimumAvailability = category.MinimumAvailability;
             radarrMovie.monitored = RadarrSettings.MonitorNewRequests;
 

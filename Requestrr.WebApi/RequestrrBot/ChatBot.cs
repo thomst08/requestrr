@@ -377,7 +377,7 @@ namespace Requestrr.WebApi.RequestrrBot
 
                 if (e.User.Id == authorId)
                 {
-                    if (e.Id.ToLower().StartsWith("mr"))
+                    if (e.Id.ToLower().StartsWith("mr") || e.Id.ToLower().StartsWith("mq"))
                     {
                         await HandleMovieRequestAsync(e);
                     }
@@ -390,7 +390,7 @@ namespace Requestrr.WebApi.RequestrrBot
                         await CreateMovieNotificationWorkflow(e)
                             .AddNotificationAsync(e.Id.Split("/").Skip(1).First(), int.Parse(e.Id.Split("/").Last()));
                     }
-                    else if (e.Id.ToLower().StartsWith("tr") || e.Id.ToLower().StartsWith("ts"))
+                    else if (e.Id.ToLower().StartsWith("tr") || e.Id.ToLower().StartsWith("ts") || e.Id.ToLower().StartsWith("tq"))
                     {
                         await HandleTvRequestAsync(e);
                     }
@@ -458,12 +458,28 @@ namespace Requestrr.WebApi.RequestrrBot
                         .HandleMovieSelectionAsync(int.Parse(e.Values.Single().Split("/").Last()));
                 }
             }
+            else if (e.Id.ToLower().StartsWith("mqs"))
+            {
+                if (e.Values != null && e.Values.Any())
+                {
+                    var splitValues = e.Values.Single().Split("/");
+                    var categoryId = int.Parse(splitValues[0]);
+                    var movieId = int.Parse(splitValues[1]);
+                    var qualityProfileId = int.Parse(splitValues[2]);
+
+                    await CreateMovieRequestWorkFlow(e, categoryId)
+                        .HandleQualitySelectionAsync(movieId, qualityProfileId);
+                }
+            }
             else if (e.Id.ToLower().StartsWith("mrc"))
             {
-                var categoryId = int.Parse(e.Id.Split("/").Skip(2).First());
+                var splitValues = e.Id.Split("/").Skip(2).ToArray();
+                var categoryId = int.Parse(splitValues[0]);
+                var movieId = int.Parse(splitValues[1]);
+                int? qualityProfileId = splitValues.Length > 2 ? int.Parse(splitValues[2]) : null;
 
                 await CreateMovieRequestWorkFlow(e, categoryId)
-                    .RequestMovieAsync(int.Parse(e.Id.Split("/").Last()));
+                    .RequestMovieAsync(movieId, qualityProfileId);
             }
         }
 
@@ -545,15 +561,30 @@ namespace Requestrr.WebApi.RequestrrBot
                         .HandleSeasonSelectionAsync(tvDbId, seasonNumber);
                 }
             }
+            else if (e.Id.ToLower().StartsWith("tqs"))
+            {
+                if (e.Values != null && e.Values.Any())
+                {
+                    var splitValues = e.Values.Single().Split("/");
+                    var categoryId = int.Parse(splitValues[0]);
+                    var tvDbId = int.Parse(splitValues[1]);
+                    var seasonNumber = int.Parse(splitValues[2]);
+                    var qualityProfileId = int.Parse(splitValues[3]);
+
+                    await CreateTvShowRequestWorkFlow(e, categoryId)
+                        .HandleQualitySelectionAsync(tvDbId, seasonNumber, qualityProfileId);
+                }
+            }
             else if (e.Id.ToLower().StartsWith("trc"))
             {
                 var splitValues = e.Id.Split("/").Skip(2).ToArray();
                 var categoryId = int.Parse(splitValues[0]);
                 var tvDbId = int.Parse(splitValues[1]);
                 var seasonNumber = int.Parse(splitValues[2]);
+                int? qualityProfileId = splitValues.Length > 3 ? int.Parse(splitValues[3]) : null;
 
                 await CreateTvShowRequestWorkFlow(e, categoryId)
-                    .RequestSeasonSelectionAsync(tvDbId, seasonNumber);
+                    .RequestSeasonSelectionAsync(tvDbId, seasonNumber, qualityProfileId);
             }
         }
 

@@ -14,6 +14,8 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
         public static string MovieTMDB = "[MovieTMDB]";
         public static string CommandPrefix = "[CommandPrefix]";
 
+        public static string QualityProfileName = "[QualityProfileName]";
+
         public static string IssueLabel = "[Issue]";
         public static string IssueTitle = "[Title]";
         public static string IssueUsername = "[Username]";
@@ -47,6 +49,12 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
         [JsonProperty("Discord.Command.Tv.Request.Help.Seasons.Dropdown")]
         public string DiscordCommandTvRequestHelpSeasonsDropdown { get; set; }
+
+        [JsonProperty("Discord.Command.Media.SelectQuality")]
+        public string DiscordCommandMediaSelectQuality { get; set; }
+
+        [JsonProperty("Discord.Command.Media.SelectedQuality")]
+        public string DiscordCommandMediaSelectedQuality { get; set; }
 
         [JsonProperty("Discord.Command.MissingRoles")]
         public string DiscordCommandMissingRoles { get; set; }

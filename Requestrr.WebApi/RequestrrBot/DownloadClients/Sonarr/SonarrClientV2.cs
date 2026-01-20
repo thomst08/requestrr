@@ -314,11 +314,13 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
                 seriesType = await IsAnimeAsync(tvShow.TheTvDbId) ? "anime" : "standard";
             }
 
+            var qualityProfileId = request.QualityProfileId ?? category.ProfileId;
+
             response = await HttpPostAsync($"{BaseURL}/series", JsonConvert.SerializeObject(new
             {
                 title = jsonTvShow.title,
-                qualityProfileId = category.ProfileId,
-                profileId = category.ProfileId,
+                qualityProfileId = qualityProfileId,
+                profileId = qualityProfileId,
                 languageProfileId = category.LanguageId,
                 titleSlug = jsonTvShow.titleSlug,
                 monitored = SonarrSettings.MonitorNewRequests,

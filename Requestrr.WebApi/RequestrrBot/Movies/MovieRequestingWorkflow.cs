@@ -13,6 +13,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         private readonly IMovieRequester _requester;
         private readonly IMovieUserInterface _userInterface;
         private readonly IMovieNotificationWorkflow _notificationWorkflow;
+        private readonly IQualityProfileProvider _qualityProfileProvider;
 
         public MovieRequestingWorkflow(
             MovieUserRequester user,
@@ -20,7 +21,8 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             IMovieSearcher searcher,
             IMovieRequester requester,
             IMovieUserInterface userInterface,
-            IMovieNotificationWorkflow movieNotificationWorkflow)
+            IMovieNotificationWorkflow movieNotificationWorkflow,
+            IQualityProfileProvider qualityProfileProvider)
         {
             _categoryId = categoryId;
             _user = user;
@@ -28,6 +30,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = movieNotificationWorkflow;
+            _qualityProfileProvider = qualityProfileProvider;
         }
 
         public async Task SearchMovieAsync(string movieName)
@@ -89,7 +92,16 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         {
             if (CanBeRequested(movie))
             {
-                await _userInterface.DisplayMovieDetailsAsync(new MovieRequest(_user, _categoryId), movie);
+                var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+                
+                if (qualityProfiles.Count > 1)
+                {
+                    await _userInterface.DisplayQualitySelectionAsync(new MovieRequest(_user, _categoryId), movie, qualityProfiles);
+                }
+                else
+                {
+                    await _userInterface.DisplayMovieDetailsAsync(new MovieRequest(_user, _categoryId), movie);
+                }
             }
             else
             {
@@ -104,18 +116,44 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             }
         }
 
-        public async Task RequestMovieAsync(int theMovieDbId)
+        public async Task HandleQualitySelectionAsync(int theMovieDbId, int qualityProfileId)
         {
             var movie = await _searcher.SearchMovieAsync(new MovieRequest(_user, _categoryId), theMovieDbId);
-            var result = await _requester.RequestMovieAsync(new MovieRequest(_user, _categoryId), movie);
+            var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+            var selectedProfile = qualityProfiles.FirstOrDefault(x => x.Id == qualityProfileId);
+
+            var request = new MovieRequest(_user, _categoryId)
+            {
+                QualityProfileId = qualityProfileId,
+                QualityProfileName = selectedProfile?.Name
+            };
+
+            await _userInterface.DisplayMovieDetailsAsync(request, movie);
+        }
+
+        public async Task RequestMovieAsync(int theMovieDbId, int? qualityProfileId = null)
+        {
+            var movie = await _searcher.SearchMovieAsync(new MovieRequest(_user, _categoryId), theMovieDbId);
+            
+            var request = new MovieRequest(_user, _categoryId);
+            
+            if (qualityProfileId.HasValue)
+            {
+                var qualityProfiles = await _qualityProfileProvider.GetQualityProfilesAsync();
+                var selectedProfile = qualityProfiles.FirstOrDefault(x => x.Id == qualityProfileId.Value);
+                request.QualityProfileId = qualityProfileId;
+                request.QualityProfileName = selectedProfile?.Name;
+            }
+
+            var result = await _requester.RequestMovieAsync(request, movie);
 
             if (result.WasDenied)
             {
-                await _userInterface.DisplayRequestDeniedAsync(movie);
+                await _userInterface.DisplayRequestDeniedAsync(request, movie);
             }
             else
             {
-                await _userInterface.DisplayRequestSuccessAsync(movie);
+                await _userInterface.DisplayRequestSuccessAsync(request, movie);
                 await _notificationWorkflow.NotifyForNewRequestAsync(_user.UserId, movie);
             }
         }

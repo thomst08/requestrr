@@ -4,6 +4,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
     {
         public int CategoryId { get; }
         public TvShowUserRequester User { get; }
+        public int? QualityProfileId { get; set; }
+        public string QualityProfileName { get; set; }
 
         public TvShowRequest(TvShowUserRequester user, int categoryId)
         {

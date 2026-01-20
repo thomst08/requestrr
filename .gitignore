@@ -9,3 +9,21 @@ Requestrr.WebApi/config/settings.json
 Requestrr.WebApi/MakeReleaseBuilds
 
 Requestrr.WebApi/MakeDockerBuilds
+
+FR_Discord_Media_Request_Quality_Selection.md
+
+BUGFIX_QUALITY_SELECTION_LOOP.md
+
+COMPLETE_FIX_SUMMARY.md
+
+FINAL_UPDATE_SUCCESS_SCREEN_FIX.md
+
+HOW_TO_VERIFY_QUALITY_PROFILE.md
+
+WHY_PREVIOUS_FIXES_FAILED.md
+
+requestrr-win-x64/
+
+
+
+

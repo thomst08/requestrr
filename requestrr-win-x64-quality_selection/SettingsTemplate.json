@@ -1,0 +1,133 @@
+{
+  "Authentication": {
+    "Username": "",
+    "Password": "",
+    "PrivateKey": "[PRIVATEKEY]"
+  },
+  "ChatClients": {
+    "Discord": {
+      "BotToken": "",
+      "ClientId": "",
+      "StatusMessage": "/help",
+      "TvShowRoles": [],
+      "MovieRoles": [],
+      "MusicRoles": [],
+      "MonitoredChannels": [],
+      "EnableRequestsThroughDirectMessages": false,
+      "AutomaticallyNotifyRequesters": true,
+      "NotificationMode": "PrivateMessages",
+      "NotificationChannels": [],
+      "AutomaticallyPurgeCommandMessages": true
+    },
+    "Language": "english"
+  },
+  "DownloadClients": {
+    "Lidarr": {
+      "Hostname": "",
+      "Port": 8686,
+      "ApiKey": "",
+      "BaseUrl": "",
+      "Categories": [
+        {
+          "Id": 0,
+          "Name": "music",
+          "ProfileId": "1",
+          "MetadataProfileId": "1",
+          "RootFolder": "",
+          "Tags": []
+        }
+      ],
+      "SearchNewRequests": true,
+      "MonitorNewRequests": true,
+      "UseSSL": false,
+      "Version": "1"
+    },
+    "Ombi": {
+      "Hostname": "",
+      "Port": 3579,
+      "ApiKey": "",
+      "ApiUsername": "",
+      "BaseUrl": "",
+      "UseSSL": false,
+      "Version": "3",
+      "UseMovieIssue": false,
+      "UseTVIssue": false
+    },
+    "Overseerr": {
+      "Hostname": "",
+      "Port": 5055,
+      "ApiKey": "",
+      "Movies": {
+        "DefaultApiUserID": "",
+        "Categories": []
+      },
+      "TvShows": {
+        "DefaultApiUserID": "",
+        "Categories": []
+      },
+      "UseSSL": false,
+      "Version": "1",
+      "UseMovieIssue": false,
+      "UseTVIssue": false
+    },
+    "Radarr": {
+      "Hostname": "",
+      "Port": 7878,
+      "ApiKey": "",
+      "BaseUrl": "",
+      "Categories": [
+        {
+          "Id": 0,
+          "Name": "movie",
+          "ProfileId": "1",
+          "RootFolder": "",
+          "MinimumAvailability": "announced",
+          "Tags": []
+        }
+      ],
+      "SearchNewRequests": true,
+      "MonitorNewRequests": true,
+      "UseSSL": false,
+      "Version": "3"
+    },
+    "Sonarr": {
+      "Hostname": "",
+      "Port": 8989,
+      "ApiKey": "",
+      "BaseUrl": "",
+      "Categories": [
+        {
+          "Id": 0,
+          "Name": "tv",
+          "ProfileId": "1",
+          "RootFolder": "",
+          "Tags": [],
+          "LanguageId": "1",
+          "UseSeasonFolders": true,
+          "SeriesType": "standard"
+        }
+      ],
+      "SearchNewRequests": true,
+      "MonitorNewRequests": true,
+      "UseSSL": false,
+      "Version": "4"
+    }
+  },
+  "BotClient": {
+    "Client": ""
+  },
+  "Movies": {
+    "Client": "Disabled"
+  },
+  "Music": {
+    "Client": "Disabled"
+  },
+  "TvShows": {
+    "Client": "Disabled",
+    "Restrictions": "None"
+  },
+  "Port": 4545,
+  "BaseUrl": "",
+  "DisableAuthentication": false,
+  "Version": "2.1.3"
+}

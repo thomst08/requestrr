@@ -17,6 +17,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         private readonly ITvShowUserInterface _userInterface;
         private readonly ITvShowNotificationWorkflow _tvShowNotificationWorkflow;
         private readonly TvShowsSettings _settings;
+        private readonly IQualityProfileProvider _qualityProfileProvider;
 
         public TvShowIssueWorkflow(
             TvShowUserRequester user,
@@ -25,7 +26,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             ITvShowRequester requester,
             ITvShowUserInterface userInterface,
             ITvShowNotificationWorkflow tvShowNotificationWorkflow,
-            TvShowsSettings settings)
+            TvShowsSettings settings,
+            IQualityProfileProvider qualityProfileProvider)
         {
             _user = user;
             _categoryId = categoryId;
@@ -34,6 +36,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             _userInterface = userInterface;
             _tvShowNotificationWorkflow = tvShowNotificationWorkflow;
             _settings = settings;
+            _qualityProfileProvider = qualityProfileProvider;
         }
         
         

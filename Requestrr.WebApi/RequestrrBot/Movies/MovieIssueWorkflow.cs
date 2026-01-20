@@ -17,6 +17,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         private readonly IMovieRequester _requester;
         private readonly IMovieUserInterface _userInterface;
         private readonly IMovieNotificationWorkflow _notificationWorkflow;
+        private readonly IQualityProfileProvider _qualityProfileProvider;
 
         public MovieIssueWorkflow(
             MovieUserRequester user,
@@ -24,7 +25,8 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             IMovieSearcher searcher,
             IMovieRequester requester,
             IMovieUserInterface userInterface,
-            IMovieNotificationWorkflow movieNotificationWorkflow)
+            IMovieNotificationWorkflow movieNotificationWorkflow,
+            IQualityProfileProvider qualityProfileProvider)
         {
             _categoryId = categoryId;
             _user = user;
@@ -32,6 +34,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = movieNotificationWorkflow;
+            _qualityProfileProvider = qualityProfileProvider;
         }
 
 
@@ -190,16 +193,17 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
 
         public async Task RequestMovieAsync(int theMovieDbId)
         {
-            var movie = await _searcher.SearchMovieAsync(new MovieRequest(_user, _categoryId), theMovieDbId);
-            var result = await _requester.RequestMovieAsync(new MovieRequest(_user, _categoryId), movie);
+            var request = new MovieRequest(_user, _categoryId);
+            var movie = await _searcher.SearchMovieAsync(request, theMovieDbId);
+            var result = await _requester.RequestMovieAsync(request, movie);
 
             if (result.WasDenied)
             {
-                await _userInterface.DisplayRequestDeniedAsync(movie);
+                await _userInterface.DisplayRequestDeniedAsync(request, movie);
             }
             else
             {
-                await _userInterface.DisplayRequestSuccessAsync(movie);
+                await _userInterface.DisplayRequestSuccessAsync(request, movie);
                 await _notificationWorkflow.NotifyForNewRequestAsync(_user.UserId, movie);
             }
         }

@@ -113,6 +113,10 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             {
                 await _userInterface.DisplayRequestDeniedAsync(movie);
             }
+            else if (result.IsPending && result.RequestId.HasValue)
+            {
+                await _userInterface.DisplayRequestPendingAsync(movie, result.RequestId.Value);
+            }
             else
             {
                 await _userInterface.DisplayRequestSuccessAsync(movie);

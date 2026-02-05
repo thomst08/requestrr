@@ -42,6 +42,10 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
             {
                 await _userInterface.DisplayRequestDeniedForSeasonAsync(tvShow, selectedSeason);
             }
+            else if (result.IsPending && result.RequestId.HasValue)
+            {
+                await _userInterface.DisplayRequestPendingForSeasonAsync(tvShow, selectedSeason, result.RequestId.Value);
+            }
             else
             {
                 await _userInterface.DisplayRequestSuccessForSeasonAsync(tvShow, selectedSeason);

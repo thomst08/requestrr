@@ -420,6 +420,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 HttpResponseMessage response = null;
+                JSONRequest overseerrRequest = null;
                 var overseerrUser = await FindLinkedOverseerUserAsync(request.User.UserId, request.User.Username, OverseerrSettings.Movies.DefaultApiUserId);
 
                 if (OverseerrSettings.Movies.Categories.Any())
@@ -453,6 +454,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                                 tags = JToken.FromObject(category.Tags),
                                 userId = int.Parse(overseerrUser),
                             }));
+                            overseerrRequest = await TryParseRequestAsync(response);
                         }
                         else
                         {
@@ -471,8 +473,12 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                                 };
                             }
 
-                            jsonResponse = await response.Content.ReadAsStringAsync();
-                            var overseerrRequest = JsonConvert.DeserializeObject<JSONRequest>(jsonResponse);
+                            overseerrRequest = await TryParseRequestAsync(response);
+                            await response.ThrowIfNotSuccessfulAsync("OverseerrRequestMovieRequest failed", x => x.error);
+                            if (overseerrRequest == null)
+                            {
+                                throw new Exception("Overseerr request response was not in the expected format.");
+                            }
 
                             response = await HttpPutAsync(null, $"{BaseURL}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
                             {
@@ -497,6 +503,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                             rootFolder = category.RootFolder,
                             tags = JToken.FromObject(category.Tags)
                         }));
+                        overseerrRequest = await TryParseRequestAsync(response);
                     }
                 }
                 else
@@ -506,6 +513,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                         mediaId = int.Parse(movie.TheMovieDbId),
                         mediaType = "movie",
                     }));
+                    overseerrRequest = await TryParseRequestAsync(response);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
@@ -518,7 +526,14 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 
                 await response.ThrowIfNotSuccessfulAsync("OverseerrRequestMovieRequest failed", x => x.error);
 
-                return new MovieRequestResult();
+                var result = new MovieRequestResult();
+                if (overseerrRequest != null)
+                {
+                    result.RequestId = overseerrRequest.ID;
+                    result.IsPending = overseerrRequest.Status == MediaRequestStatus.PENDING;
+                }
+
+                return result;
             }
             catch (System.Exception ex)
             {
@@ -735,6 +750,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                         : new HashSet<int> { season.SeasonNumber };
 
                 HttpResponseMessage response = null;
+                JSONRequest overseerrRequest = null;
                 var overseerrUser = await FindLinkedOverseerUserAsync(request.User.UserId, request.User.Username, OverseerrSettings.TvShows.DefaultApiUserId);
 
                 if (OverseerrSettings.TvShows.Categories.Any())
@@ -770,6 +786,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                                 tags = JToken.FromObject(category.Tags),
                                 userId = int.Parse(overseerrUser),
                             }));
+                            overseerrRequest = await TryParseRequestAsync(response);
                         }
                         else
                         {
@@ -789,8 +806,12 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                                 };
                             }
 
-                            jsonResponse = await response.Content.ReadAsStringAsync();
-                            var overseerrRequest = JsonConvert.DeserializeObject<JSONRequest>(jsonResponse);
+                            overseerrRequest = await TryParseRequestAsync(response);
+                            await response.ThrowIfNotSuccessfulAsync("OverseerrRequestTvShowRequest failed", x => x.error);
+                            if (overseerrRequest == null)
+                            {
+                                throw new Exception("Overseerr request response was not in the expected format.");
+                            }
 
                             response = await HttpPutAsync(null, $"{BaseURL}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
                             {
@@ -819,6 +840,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                             rootFolder = category.RootFolder,
                             tags = JToken.FromObject(category.Tags)
                         }));
+                        overseerrRequest = await TryParseRequestAsync(response);
                     }
                 }
                 else
@@ -829,6 +851,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                         mediaType = "tv",
                         seasons = wantedSeasonIds.ToArray(),
                     }));
+                    overseerrRequest = await TryParseRequestAsync(response);
                 }
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
@@ -841,13 +864,49 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 
                 await response.ThrowIfNotSuccessfulAsync("OverseerrRequestTvShowRequest failed", x => x.error);
 
-                return new TvShowRequestResult();
+                var result = new TvShowRequestResult();
+                if (overseerrRequest != null)
+                {
+                    result.RequestId = overseerrRequest.ID;
+                    result.IsPending = overseerrRequest.Status == MediaRequestStatus.PENDING;
+                }
+
+                return result;
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"An error while requesting tv show \"{tvShow.Title}\" from Overseerr: " + ex.Message);
                 throw new System.Exception($"An error while requesting tv show \"{tvShow.Title}\" from Overseerr: " + ex.Message);
             }
+        }
+
+        public async Task<bool> ApproveRequestAsync(int requestId)
+        {
+            var response = await HttpPostAsync(null, $"{BaseURL}request/{requestId}/approve", "{}");
+            await response.ThrowIfNotSuccessfulAsync("OverseerrApproveRequest failed", x => x.error);
+            return true;
+        }
+
+        public async Task<bool> DeclineRequestAsync(int requestId)
+        {
+            var response = await HttpPostAsync(null, $"{BaseURL}request/{requestId}/decline", "{}");
+            await response.ThrowIfNotSuccessfulAsync("OverseerrDeclineRequest failed", x => x.error);
+            return true;
+        }
+
+        public async Task<MediaRequestStatus?> TryGetRequestStatusAsync(int requestId)
+        {
+            var response = await HttpGetAsync($"{BaseURL}request/{requestId}");
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            await response.ThrowIfNotSuccessfulAsync("OverseerrGetRequest failed", x => x.error);
+
+            var request = JsonConvert.DeserializeObject<JSONRequest>(content);
+            return request?.Status;
         }
 
 
@@ -1055,6 +1114,19 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             }
 
             return RequestedState.None;
+        }
+
+        private static async Task<JSONRequest> TryParseRequestAsync(HttpResponseMessage response)
+        {
+            try
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<JSONRequest>(content);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private Task<HttpResponseMessage> HttpGetAsync(string url)

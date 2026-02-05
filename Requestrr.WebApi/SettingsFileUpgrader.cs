@@ -298,6 +298,44 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson.ChatClients.Discord).Add("MusicRoles", JToken.FromObject(new List<string>()));
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
+
+            if (settingsJson.Version.ToString().Equals("2.1.3", StringComparison.InvariantCultureIgnoreCase))
+            {
+                settingsJson.Version = "2.1.4";
+
+                var discordSettings = (JObject)settingsJson.ChatClients.Discord;
+                if (discordSettings.Property("AdminRoleIds") == null)
+                {
+                    discordSettings.Add("AdminRoleIds", JToken.FromObject(new List<string>()));
+                }
+
+                if (discordSettings.Property("AdminChannelIds") == null)
+                {
+                    discordSettings.Add("AdminChannelIds", JToken.FromObject(new List<string>()));
+                }
+
+                if (discordSettings.Property("AdminChannelAllRequests") == null)
+                {
+                    discordSettings.Add("AdminChannelAllRequests", false);
+                }
+
+                if (discordSettings.Property("ApprovalEmojiApprove") == null)
+                {
+                    discordSettings.Add("ApprovalEmojiApprove", "✅");
+                }
+
+                if (discordSettings.Property("ApprovalEmojiDeny") == null)
+                {
+                    discordSettings.Add("ApprovalEmojiDeny", "❌");
+                }
+
+                if (discordSettings.Property("AdminUserIds") != null)
+                {
+                    discordSettings.Remove("AdminUserIds");
+                }
+
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
         }
     }
 }

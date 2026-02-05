@@ -15,6 +15,11 @@ namespace Requestrr.WebApi.config
         public string[] MovieRoles { get; set; }
         public string[] MusicRoles { get; set; }
         public string[] MonitoredChannels { get; set; }
+        public string[] AdminRoleIds { get; set; }
+        public string[] AdminChannelIds { get; set; }
+        public bool AdminChannelAllRequests { get; set; }
+        public string ApprovalEmojiApprove { get; set; }
+        public string ApprovalEmojiDeny { get; set; }
         public bool EnableRequestsThroughDirectMessages { get; set; }
         public bool AutomaticallyNotifyRequesters { get; set; }
         public string NotificationMode { get; set; }

@@ -18,6 +18,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         public int TvShowDownloadClientConfigurationHash { get; set; }
         public string MusicDownloadClient { get; set; }
         public int MusicDownloadClientConfigurationHash { get; set; }
+        public string[] AdminRoleIds { get; set; }
+        public string[] AdminChannelIds { get; set; }
+        public bool AdminChannelAllRequests { get; set; }
+        public string ApprovalEmojiApprove { get; set; }
+        public string ApprovalEmojiDeny { get; set; }
         public bool EnableRequestsThroughDirectMessages { get; set; }
         public bool AutomaticallyNotifyRequesters { get; set; }
         public string NotificationMode { get; set; }
@@ -30,20 +35,25 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                    BotToken == settings.BotToken &&
                    ClientID == settings.ClientID &&
                    StatusMessage == settings.StatusMessage &&
-                   MonitoredChannels.SequenceEqual(settings.MonitoredChannels) &&
-                   TvShowRoles.SequenceEqual(settings.TvShowRoles) &&
-                   MovieRoles.SequenceEqual(settings.MovieRoles) &&
-                   MusicRoles.SequenceEqual(settings.MusicRoles) &&
+                   (MonitoredChannels ?? Array.Empty<string>()).SequenceEqual(settings.MonitoredChannels ?? Array.Empty<string>()) &&
+                   (TvShowRoles ?? Array.Empty<string>()).SequenceEqual(settings.TvShowRoles ?? Array.Empty<string>()) &&
+                   (MovieRoles ?? Array.Empty<string>()).SequenceEqual(settings.MovieRoles ?? Array.Empty<string>()) &&
+                   (MusicRoles ?? Array.Empty<string>()).SequenceEqual(settings.MusicRoles ?? Array.Empty<string>()) &&
                    MovieDownloadClient == settings.MovieDownloadClient &&
                    MovieDownloadClientConfigurationHash == settings.MovieDownloadClientConfigurationHash &&
                    TvShowDownloadClient == settings.TvShowDownloadClient &&
                    TvShowDownloadClientConfigurationHash == settings.TvShowDownloadClientConfigurationHash &&
                    MusicDownloadClient == settings.MusicDownloadClient &&
                    MusicDownloadClientConfigurationHash == settings.MusicDownloadClientConfigurationHash &&
+                   (AdminRoleIds ?? Array.Empty<string>()).SequenceEqual(settings.AdminRoleIds ?? Array.Empty<string>()) &&
+                   (AdminChannelIds ?? Array.Empty<string>()).SequenceEqual(settings.AdminChannelIds ?? Array.Empty<string>()) &&
+                   AdminChannelAllRequests == settings.AdminChannelAllRequests &&
+                   ApprovalEmojiApprove == settings.ApprovalEmojiApprove &&
+                   ApprovalEmojiDeny == settings.ApprovalEmojiDeny &&
                    EnableRequestsThroughDirectMessages == settings.EnableRequestsThroughDirectMessages &&
                    AutomaticallyNotifyRequesters == settings.AutomaticallyNotifyRequesters &&
                    NotificationMode == settings.NotificationMode &&
-                   NotificationChannels.SequenceEqual(settings.NotificationChannels) &&
+                   (NotificationChannels ?? Array.Empty<string>()).SequenceEqual(settings.NotificationChannels ?? Array.Empty<string>()) &&
                    AutomaticallyPurgeCommandMessages == settings.AutomaticallyPurgeCommandMessages;
         }
 
@@ -63,6 +73,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             hash.Add(TvShowDownloadClientConfigurationHash);
             hash.Add(MusicDownloadClient);
             hash.Add(MusicDownloadClientConfigurationHash);
+            hash.Add(AdminRoleIds);
+            hash.Add(AdminChannelIds);
+            hash.Add(AdminChannelAllRequests);
+            hash.Add(ApprovalEmojiApprove);
+            hash.Add(ApprovalEmojiDeny);
             hash.Add(EnableRequestsThroughDirectMessages);
             hash.Add(AutomaticallyNotifyRequesters);
             hash.Add(NotificationMode);

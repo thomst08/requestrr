@@ -68,6 +68,11 @@ function ChatClients(props) {
   const [tvShowRoles, setTvShowRoles] = useState([]);
   const [movieRoles, setMovieRoles] = useState([]);
   const [musicRoles, setMusicRoles] = useState([]);
+  const [adminRoleIds, setAdminRoleIds] = useState([]);
+  const [adminChannelIds, setAdminChannelIds] = useState([]);
+  const [adminChannelAllRequests, setAdminChannelAllRequests] = useState(false);
+  const [approvalEmojiApprove, setApprovalEmojiApprove] = useState("✅");
+  const [approvalEmojiDeny, setApprovalEmojiDeny] = useState("❌");
   const [automaticallyNotifyRequesters, setAutomaticallyNotifyRequesters] = useState(true);
   const [notificationMode, setNotificationMode] = useState("PrivateMessages");
   const [notificationChannels, setNotificationChannels] = useState([]);
@@ -91,6 +96,11 @@ function ChatClients(props) {
         setTvShowRoles(data.payload.tvShowRoles);
         setMovieRoles(data.payload.movieRoles);
         setMusicRoles(data.payload.musicRoles);
+        setAdminRoleIds(data.payload.adminRoleIds || []);
+        setAdminChannelIds(data.payload.adminChannelIds || []);
+        setAdminChannelAllRequests(data.payload.adminChannelAllRequests || false);
+        setApprovalEmojiApprove(data.payload.approvalEmojiApprove || "✅");
+        setApprovalEmojiDeny(data.payload.approvalEmojiDeny || "❌");
         setAutomaticallyNotifyRequesters(data.payload.automaticallyNotifyRequesters);
         setNotificationMode(data.payload.notificationMode);
         setNotificationChannels(data.payload.notificationChannels);
@@ -192,6 +202,11 @@ function ChatClients(props) {
           tvShowRoles: tvShowRoles,
           movieRoles: movieRoles,
           musicRoles: musicRoles,
+          adminRoleIds: adminRoleIds,
+          adminChannelIds: adminChannelIds,
+          adminChannelAllRequests: adminChannelAllRequests,
+          approvalEmojiApprove: approvalEmojiApprove,
+          approvalEmojiDeny: approvalEmojiDeny,
           enableRequestsThroughDirectMessages: enableRequestsThroughDirectMessages,
           automaticallyNotifyRequesters: automaticallyNotifyRequesters,
           notificationMode: notificationMode,
@@ -439,6 +454,118 @@ function ChatClients(props) {
                             selectedItems={musicRoles.map(x => { return { name: x, id: x } })}
                             items={musicRoles.map(x => { return { name: x, id: x } })}
                             onChange={newMusicRoles => setMusicRoles(newMusicRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                        </FormGroup>
+                      </Col>
+                      <Col lg="6">
+                        <FormGroup>
+                          <MultiDropdown
+                            name="Admin role ids for approvals"
+                            create={true}
+                            searchable={true}
+                            placeholder="Enter discord role ids for request approvals."
+                            labelField="name"
+                            valueField="id"
+                            dropdownHandle={false}
+                            selectedItems={adminRoleIds.map(x => { return { name: x, id: x } })}
+                            items={adminRoleIds.map(x => { return { name: x, id: x } })}
+                            onChange={newAdminIds => setAdminRoleIds(newAdminIds.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                        </FormGroup>
+                      </Col>
+                      <Col lg="6">
+                        <FormGroup>
+                          <MultiDropdown
+                            name="Admin channel ids for request (approvals)"
+                            create={true}
+                            searchable={true}
+                            placeholder="Enter discord channel ids for request approvals."
+                            labelField="name"
+                            valueField="id"
+                            dropdownHandle={false}
+                            selectedItems={adminChannelIds.map(x => { return { name: x, id: x } })}
+                            items={adminChannelIds.map(x => { return { name: x, id: x } })}
+                            onChange={newChannelIds => setAdminChannelIds(newChannelIds.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                        </FormGroup>
+                      </Col>
+                      <Col lg="6">
+                        <FormGroup>
+                          <label
+                            className="form-control-label"
+                            htmlFor="input-approval-emoji-approve"
+                          >
+                            Approval emoji (Unicode only)
+                          </label>
+                          <Input
+                            value={approvalEmojiApprove}
+                            onChange={e => setApprovalEmojiApprove(e.target.value)}
+                            className="form-control-alternative"
+                            id="input-approval-emoji-approve"
+                            placeholder="✅"
+                            type="text"
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col lg="6">
+                        <FormGroup>
+                          <label
+                            className="form-control-label"
+                            htmlFor="input-approval-emoji-deny"
+                          >
+                            Deny emoji (Unicode only)
+                          </label>
+                          <Input
+                            value={approvalEmojiDeny}
+                            onChange={e => setApprovalEmojiDeny(e.target.value)}
+                            className="form-control-alternative"
+                            id="input-approval-emoji-deny"
+                            placeholder="❌"
+                            type="text"
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md="12">
+                        <FormGroup>
+                          {
+                            (!isLoading) && (
+                              (() => {
+                                const warnings = [];
+                                if (!adminRoleIds || adminRoleIds.length === 0) {
+                                  warnings.push("No admin role ids are configured. Requests that require approval will have no one able to approve/deny them.");
+                                }
+                                if (!adminChannelIds || adminChannelIds.length === 0) {
+                                  warnings.push("No admin channel ids are configured. Pending approvals will not be posted to any admin channel.");
+                                }
+                                if (warnings.length === 0) {
+                                  return null;
+                                }
+                                return (
+                                  <Alert className="mb-0" color="warning">
+                                    <strong>Approvals warning:</strong> {warnings.join(" ")}
+                                  </Alert>
+                                );
+                              })()
+                            )
+                          }
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col md="12">
+                        <FormGroup className="custom-control custom-control-alternative custom-checkbox mb-3">
+                          <Input
+                            className="custom-control-input"
+                            id="adminChannelAllRequests"
+                            type="checkbox"
+                            onChange={e => { setAdminChannelAllRequests(!adminChannelAllRequests); }}
+                            checked={adminChannelAllRequests}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="adminChannelAllRequests"
+                          >
+                            <span className="text-muted">Send all requests to admin channel(s), not only pending ones.</span>
+                          </label>
                         </FormGroup>
                       </Col>
                     </Row>

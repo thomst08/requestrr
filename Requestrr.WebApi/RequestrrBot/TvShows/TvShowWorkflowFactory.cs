@@ -4,6 +4,7 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using Microsoft.Extensions.Logging;
 using Requestrr.WebApi.RequestrrBot.ChatClients.Discord;
+using Requestrr.WebApi.RequestrrBot.Approvals;
 using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
@@ -18,6 +19,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         private readonly TvShowsSettingsProvider _tvShowsSettingsProvider;
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly TvShowNotificationsRepository _notificationsRepository;
+        private readonly RequestApprovalRepository _approvalRepository;
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private SonarrClient _sonarrDownloadClient;
@@ -26,6 +28,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             TvShowsSettingsProvider tvShowsSettingsProvider,
             DiscordSettingsProvider settingsProvider,
             TvShowNotificationsRepository notificationsRepository,
+            RequestApprovalRepository approvalRepository,
             OverseerrClient overseerrClient,
             OmbiClient ombiDownloadClient,
             SonarrClient radarrDownloadClient)
@@ -33,6 +36,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             _tvShowsSettingsProvider = tvShowsSettingsProvider;
             _settingsProvider = settingsProvider;
             _notificationsRepository = notificationsRepository;
+            _approvalRepository = approvalRepository;
             _overseerrClient = overseerrClient;
             _ombiDownloadClient = ombiDownloadClient;
             _sonarrDownloadClient = radarrDownloadClient;
@@ -52,7 +56,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                                                 categoryId,
                                                 GetTvShowClient<ITvShowSearcher>(settings),
                                                 GetTvShowClient<ITvShowRequester>(settings),
-                                                new DiscordTvShowUserInterface(interaction, issueSearcher),
+                                                new DiscordTvShowUserInterface(interaction, _settingsProvider, _approvalRepository, issueSearcher),
                                                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
                                                 _tvShowsSettingsProvider.Provide());
         }
@@ -73,7 +77,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                 categoryId,
                 GetTvShowClient<ITvShowSearcher>(settings),
                 GetTvShowClient<ITvShowRequester>(settings),
-                new DiscordTvShowUserInterface(interaction, issueSearcher),
+                new DiscordTvShowUserInterface(interaction, _settingsProvider, _approvalRepository, issueSearcher),
                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
                 _tvShowsSettingsProvider.Provide());
         }
@@ -109,7 +113,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
         private ITvShowNotificationWorkflow CreateMovieNotificationWorkflow(DiscordInteraction interaction, DiscordSettings settings, ITvShowSearcher tvShowSearcher)
         {
-            var userInterface = new DiscordTvShowUserInterface(interaction);
+            var userInterface = new DiscordTvShowUserInterface(interaction, _settingsProvider, _approvalRepository);
             ITvShowNotificationWorkflow movieNotificationWorkflow = new DisabledTvShowNotificationWorkflow(userInterface);
 
             if (settings.NotificationMode != NotificationMode.Disabled)

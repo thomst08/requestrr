@@ -24,7 +24,7 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
             if (additionalTokenReplacements != null)
             {
-                replaced = ReplaceTokens(text, additionalTokenReplacements);
+                replaced = ReplaceTokens(replaced, additionalTokenReplacements);
             }
 
             return replaced;
@@ -41,7 +41,7 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
             if (additionalTokenReplacements != null)
             {
-                replaced = ReplaceTokens(text, additionalTokenReplacements);
+                replaced = ReplaceTokens(replaced, additionalTokenReplacements);
             }
 
             return replaced;
@@ -56,7 +56,7 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
             string replaced = ReplaceTokens(text, musicReplacementTokens);
             if (additionalTokenReplacements != null)
-                replaced = ReplaceTokens(text, additionalTokenReplacements);
+                replaced = ReplaceTokens(replaced, additionalTokenReplacements);
 
             return replaced;
         }

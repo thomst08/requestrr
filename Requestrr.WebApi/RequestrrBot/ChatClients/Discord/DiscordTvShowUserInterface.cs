@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using Requestrr.WebApi.RequestrrBot.Approvals;
 using Requestrr.WebApi.RequestrrBot.Locale;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 
@@ -13,10 +14,14 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
     {
         private readonly DiscordInteraction _interactionContext;
         private readonly ITvShowIssueSearcher _tvShowIssue;
+        private readonly DiscordSettingsProvider _settingsProvider;
+        private readonly RequestApprovalRepository _approvalRepository;
 
-        public DiscordTvShowUserInterface(DiscordInteraction interactionContext, ITvShowIssueSearcher tvShowIssue = null)
+        public DiscordTvShowUserInterface(DiscordInteraction interactionContext, DiscordSettingsProvider settingsProvider, RequestApprovalRepository approvalRepository, ITvShowIssueSearcher tvShowIssue = null)
         {
             _interactionContext = interactionContext;
+            _settingsProvider = settingsProvider;
+            _approvalRepository = approvalRepository;
             _tvShowIssue = tvShowIssue;
         }
 
@@ -117,6 +122,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(deniedButton).WithContent(Language.Current.DiscordCommandTvRequestDenied);
 
             await _interactionContext.EditOriginalResponseAsync(builder);
+            await SendAdminRequestMessageAsync(tvShow, embed, Language.Current.DiscordCommandRequestDenied);
         }
 
         public async Task DisplayRequestSuccessForSeasonAsync(TvShow tvShow, TvSeason requestedSeason)
@@ -133,6 +139,77 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed))).AddComponents(successButton).WithContent(message);
 
             await _interactionContext.EditOriginalResponseAsync(builder);
+            await SendAdminRequestMessageAsync(tvShow, embed, Language.Current.DiscordCommandRequestApproved);
+        }
+
+        public async Task DisplayRequestPendingForSeasonAsync(TvShow tvShow, TvSeason requestedSeason, int requestId)
+        {
+            var settings = _settingsProvider.Provide();
+            var approveEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiApprove) ? "✅" : settings.ApprovalEmojiApprove.Trim();
+            var denyEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiDeny) ? "❌" : settings.ApprovalEmojiDeny.Trim();
+            var baseEmbed = GenerateTvShowDetailsAsync(tvShow);
+            var footerText = string.IsNullOrWhiteSpace(baseEmbed.Footer?.Text)
+                ? $"{DiscordConstants.OverseerrRequestIdMarker} {requestId}"
+                : $"{baseEmbed.Footer.Text} | {DiscordConstants.OverseerrRequestIdMarker} {requestId}";
+            var embed = new DiscordEmbedBuilder(baseEmbed)
+                .WithFooter(footerText)
+                .Build();
+            var message = requestedSeason is AllTvSeasons
+                ? settings.AutomaticallyPurgeCommandMessages
+                    ? Language.Current.DiscordCommandTvRequestPendingAllSeasonsSilent.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                    {
+                        { LanguageTokens.ApproveEmoji, approveEmoji },
+                        { LanguageTokens.DenyEmoji, denyEmoji }
+                    })
+                    : Language.Current.DiscordCommandTvRequestPendingAllSeasons.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                    {
+                        { LanguageTokens.ApproveEmoji, approveEmoji },
+                        { LanguageTokens.DenyEmoji, denyEmoji }
+                    })
+                : requestedSeason is FutureTvSeasons
+                    ? settings.AutomaticallyPurgeCommandMessages
+                        ? Language.Current.DiscordCommandTvRequestPendingFutureSeasonsSilent.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                        {
+                            { LanguageTokens.ApproveEmoji, approveEmoji },
+                            { LanguageTokens.DenyEmoji, denyEmoji }
+                        })
+                        : Language.Current.DiscordCommandTvRequestPendingFutureSeasons.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                        {
+                            { LanguageTokens.ApproveEmoji, approveEmoji },
+                            { LanguageTokens.DenyEmoji, denyEmoji }
+                        })
+                    : settings.AutomaticallyPurgeCommandMessages
+                        ? Language.Current.DiscordCommandTvRequestPendingSeasonSilent.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                        {
+                            { LanguageTokens.ApproveEmoji, approveEmoji },
+                            { LanguageTokens.DenyEmoji, denyEmoji }
+                        })
+                        : Language.Current.DiscordCommandTvRequestPendingSeason.ReplaceTokens(tvShow, requestedSeason.SeasonNumber, new Dictionary<string, string>
+                        {
+                            { LanguageTokens.ApproveEmoji, approveEmoji },
+                            { LanguageTokens.DenyEmoji, denyEmoji }
+                        });
+
+            var builder = (await AddPreviousDropdownsAsync(tvShow, new DiscordWebhookBuilder().AddEmbed(embed)))
+                .WithContent(message);
+
+            await _interactionContext.EditOriginalResponseAsync(builder);
+            var originalMessage = await _interactionContext.GetOriginalResponseAsync();
+            var isDirectMessage = originalMessage.Channel != null && originalMessage.Channel.Type == ChannelType.Private;
+            _approvalRepository.AddMessage(requestId, _interactionContext.User.Username, _interactionContext.User.Id, originalMessage.ChannelId, originalMessage.Id, false, isDirectMessage);
+            if (!settings.AutomaticallyPurgeCommandMessages)
+            {
+                try
+                {
+                    await originalMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(approveEmoji));
+                    await originalMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(denyEmoji));
+                }
+                catch
+                {
+                    // Ignore reaction failures
+                }
+            }
+            await SendAdminPendingMessageAsync(tvShow, embed, requestId, approveEmoji, denyEmoji);
         }
 
         public async Task DisplayTvShowDetailsForSeasonAsync(TvShowRequest request, TvShow tvShow, TvSeason season)
@@ -481,6 +558,79 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             }
 
             return builder;
+        }
+
+        private async Task SendAdminPendingMessageAsync(TvShow tvShow, DiscordEmbed embed, int requestId, string approveEmoji, string denyEmoji)
+        {
+            var settings = _settingsProvider.Provide();
+            if (settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            {
+                return;
+            }
+
+            var adminPrompt = Language.Current.DiscordCommandRequestPendingAdmin
+                .ReplaceTokens(LanguageTokens.AuthorUsername, _interactionContext.User.Username)
+                .ReplaceTokens(LanguageTokens.ApproveEmoji, approveEmoji)
+                .ReplaceTokens(LanguageTokens.DenyEmoji, denyEmoji);
+
+            var builder = new DiscordMessageBuilder()
+                .WithContent(adminPrompt)
+                .AddEmbed(embed);
+
+            foreach (var channelId in settings.AdminChannelIds)
+            {
+                if (!ulong.TryParse(channelId, out var parsedChannelId))
+                {
+                    continue;
+                }
+
+                var channel = _interactionContext.Guild?.GetChannel(parsedChannelId);
+                if (channel != null)
+                {
+                    var adminRequestMessage = await channel.SendMessageAsync(builder);
+                    _approvalRepository.AddMessage(requestId, _interactionContext.User.Username, _interactionContext.User.Id, adminRequestMessage.ChannelId, adminRequestMessage.Id, true, false);
+                    try
+                    {
+                        await adminRequestMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(approveEmoji));
+                        await adminRequestMessage.CreateReactionAsync(DiscordEmoji.FromUnicode(denyEmoji));
+                    }
+                    catch
+                    {
+                        // Ignore reaction failures
+                    }
+                }
+            }
+        }
+
+        private async Task SendAdminRequestMessageAsync(TvShow tvShow, DiscordEmbed embed, string statusMessage)
+        {
+            var settings = _settingsProvider.Provide();
+            if (!settings.AdminChannelAllRequests || settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            {
+                return;
+            }
+
+            var adminMessage = Language.Current.DiscordCommandRequestAdminSummary
+                .ReplaceTokens(LanguageTokens.AuthorUsername, _interactionContext.User.Username)
+                .ReplaceTokens(LanguageTokens.RequestStatus, statusMessage);
+
+            var builder = new DiscordMessageBuilder()
+                .WithContent(adminMessage)
+                .AddEmbed(embed);
+
+            foreach (var channelId in settings.AdminChannelIds)
+            {
+                if (!ulong.TryParse(channelId, out var parsedChannelId))
+                {
+                    continue;
+                }
+
+                var channel = _interactionContext.Guild?.GetChannel(parsedChannelId);
+                if (channel != null)
+                {
+                    await channel.SendMessageAsync(builder);
+                }
+            }
         }
 
         private string GetFormatedTvShowTitle(SearchedTvShow tvShow)

@@ -27,6 +27,8 @@ using Requestrr.WebApi.RequestrrBot.Notifications.Movies;
 using Requestrr.WebApi.RequestrrBot.Notifications.Music;
 using Requestrr.WebApi.RequestrrBot.Notifications.TvShows;
 using Requestrr.WebApi.RequestrrBot.TvShows;
+using Requestrr.WebApi.RequestrrBot.Logging;
+using System.Diagnostics;
 
 namespace Requestrr.WebApi.RequestrrBot
 {
@@ -67,9 +69,9 @@ namespace Requestrr.WebApi.RequestrrBot
             _radarrDownloadClient = new RadarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<RadarrClient>>(), serviceProvider.Get<RadarrSettingsProvider>());
             _sonarrDownloadClient = new SonarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<SonarrClient>>(), serviceProvider.Get<SonarrSettingsProvider>());
             _lidarrDownloadClient = new LidarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<LidarrClient>>(), serviceProvider.Get<LidarrSettingsProvider>());
-            _movieWorkflowFactory = new MovieWorkflowFactory(_discordSettingsProvider, _movieNotificationRepository, _overseerrClient, _ombiDownloadClient, _radarrDownloadClient);
-            _tvShowWorkflowFactory = new TvShowWorkflowFactory(serviceProvider.Get<TvShowsSettingsProvider>(), _discordSettingsProvider, _tvShowNotificationRepository, _overseerrClient, _ombiDownloadClient, _sonarrDownloadClient);
-            _musicWorkflowFactory = new MusicWorkflowFactory(_discordSettingsProvider, _musicNotificationRepository, _lidarrDownloadClient);
+            _movieWorkflowFactory = new MovieWorkflowFactory(_discordSettingsProvider, _movieNotificationRepository, _overseerrClient, _ombiDownloadClient, _radarrDownloadClient, _logger);
+            _tvShowWorkflowFactory = new TvShowWorkflowFactory(serviceProvider.Get<TvShowsSettingsProvider>(), _discordSettingsProvider, _tvShowNotificationRepository, _overseerrClient, _ombiDownloadClient, _sonarrDownloadClient, _logger);
+            _musicWorkflowFactory = new MusicWorkflowFactory(_discordSettingsProvider, _musicNotificationRepository, _lidarrDownloadClient, _logger);
         }
 
         public async void Start()
@@ -183,6 +185,9 @@ namespace Requestrr.WebApi.RequestrrBot
                     _client.Ready += Connected;
                     _client.ComponentInteractionCreated += DiscordComponentInteractionCreatedHandler;
                     _client.ModalSubmitted += DiscordModalSubmittedHandler;
+                    _client.Heartbeated += HeartbeatedHandler;
+                    _client.Resumed += ResumedHandler;
+                    _client.SocketErrored += SocketErroredHandler;
 
                     _currentGuilds = new HashSet<ulong>();
 
@@ -215,31 +220,65 @@ namespace Requestrr.WebApi.RequestrrBot
 
                             var slashCommandType = SlashCommandBuilder.Build(_logger, newSettings, _serviceProvider.Get<RadarrSettingsProvider>(), _serviceProvider.Get<SonarrSettingsProvider>(), _serviceProvider.Get<OverseerrSettingsProvider>(), _serviceProvider.Get<OmbiSettingsProvider>(), _serviceProvider.Get<LidarrSettingsProvider>());
 
+                            var guildCount = _client.Guilds.Count;
+                            _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, $"Starting slash command registration for {guildCount} guilds");
+                            var registrationStopwatch = Stopwatch.StartNew();
+
                             if (newSettings.EnableRequestsThroughDirectMessages)
                             {
-                                try { _slashCommands.RegisterCommands(slashCommandType); }
+                                try
+                                {
+                                    _slashCommands.RegisterCommands(slashCommandType);
+                                    _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, "Registered global slash commands");
+                                }
                                 catch (System.Exception ex) { _logger.LogError(ex, "Error while registering global slash commands: " + ex.Message); }
+
+                                // Add delay to prevent Discord rate limiting
+                                await Task.Delay(TimeSpan.FromSeconds(2));
 
                                 foreach (var guildId in _client.Guilds.Keys)
                                 {
-                                    try { _slashCommands.RegisterCommands<EmptySlashCommands>(guildId); }
-                                    catch (System.Exception ex) { _logger.LogError(ex, $"Error while emptying guild-specific slash commands for guid {guildId}: " + ex.Message); }
+                                    try
+                                    {
+                                        _slashCommands.RegisterCommands<EmptySlashCommands>(guildId);
+                                        _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, $"Emptied guild-specific slash commands for guild {guildId}");
+                                    }
+                                    catch (System.Exception ex) { _logger.LogError(ex, $"Error while emptying guild-specific slash commands for guild {guildId}: " + ex.Message); }
+
+                                    // Add delay between guild registrations to prevent rate limiting
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                             }
                             else
                             {
-                                try { _slashCommands.RegisterCommands<EmptySlashCommands>(); }
+                                try
+                                {
+                                    _slashCommands.RegisterCommands<EmptySlashCommands>();
+                                    _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, "Emptied global slash commands");
+                                }
                                 catch (System.Exception ex) { _logger.LogError(ex, "Error while emptying global slash commands: " + ex.Message); }
+
+                                // Add delay to prevent Discord rate limiting
+                                await Task.Delay(TimeSpan.FromSeconds(2));
 
                                 foreach (var guildId in _client.Guilds.Keys)
                                 {
-                                    try { _slashCommands.RegisterCommands(slashCommandType, guildId); }
-                                    catch (System.Exception ex) { _logger.LogError(ex, $"Error while registering guild-specific slash commands for guid {guildId}: " + ex.Message); }
+                                    try
+                                    {
+                                        _slashCommands.RegisterCommands(slashCommandType, guildId);
+                                        _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, $"Registered guild-specific slash commands for guild {guildId}");
+                                    }
+                                    catch (System.Exception ex) { _logger.LogError(ex, $"Error while registering guild-specific slash commands for guild {guildId}: " + ex.Message); }
+
+                                    // Add delay between guild registrations to prevent rate limiting
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                             }
 
                             await _slashCommands.RefreshCommands();
-                            await Task.Delay(TimeSpan.FromMinutes(1));
+                            registrationStopwatch.Stop();
+                            _logger.LogDiscordSlashCommand(Program.DiagnosticsSettings, $"Slash command registration completed in {registrationStopwatch.ElapsedMilliseconds}ms across {guildCount} guilds");
+                            await Task.Delay(TimeSpan.FromSeconds(5));
                         }
                         catch (Exception ex)
                         {
@@ -264,7 +303,28 @@ namespace Requestrr.WebApi.RequestrrBot
 
         private async Task Connected(DiscordClient client, ReadyEventArgs args)
         {
+            var guildCount = client.Guilds.Count;
+            var latency = client.Ping;
+            _logger.LogDiscordConnection(Program.DiagnosticsSettings, $"Discord bot connected to {guildCount} guilds, Latency: {latency}ms");
             await ApplyBotConfigurationAsync(_currentSettings);
+        }
+
+        private Task HeartbeatedHandler(DiscordClient client, HeartbeatEventArgs args)
+        {
+            _logger.LogDiscordHeartbeat(Program.DiagnosticsSettings, args.Ping);
+            return Task.CompletedTask;
+        }
+
+        private Task ResumedHandler(DiscordClient client, ReadyEventArgs args)
+        {
+            _logger.LogDiscordConnection(Program.DiagnosticsSettings, "Discord connection resumed");
+            return Task.CompletedTask;
+        }
+
+        private Task SocketErroredHandler(DiscordClient client, SocketErrorEventArgs args)
+        {
+            _logger.LogWarning(args.Exception, $"WebSocket error: {args.Exception.Message}");
+            return Task.CompletedTask;
         }
 
         private async Task ApplyBotConfigurationAsync(DiscordSettings discordSettings)

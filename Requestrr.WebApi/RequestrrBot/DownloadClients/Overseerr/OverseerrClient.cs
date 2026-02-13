@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Requestrr.WebApi.Extensions;
 using Requestrr.WebApi.RequestrrBot.Locale;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 
@@ -1094,7 +1096,21 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             }
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PostAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PostAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Overseerr", "POST", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
+        }
+
+        private async Task<HttpResponseMessage> LoggedHttpGetAsync(string url)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var stopwatch = Stopwatch.StartNew();
+            var response = await HttpGetAsync(client, OverseerrSettings, url);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Overseerr", "GET", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private async Task<HttpResponseMessage> HttpPutAsync(string overseerrUserId, string url, string content)
@@ -1110,7 +1126,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             }
 
             var client = _httpClientFactory.CreateClient();
-            return await client.PutAsync(url, postRequest);
+            var stopwatch = Stopwatch.StartNew();
+            var response = await client.PutAsync(url, postRequest);
+            stopwatch.Stop();
+            _logger.LogHttpRequest(Program.DiagnosticsSettings, "Overseerr", "PUT", url, response.StatusCode, stopwatch.ElapsedMilliseconds);
+            return response;
         }
 
         private static string GetBaseURL(OverseerrTestSettings settings)

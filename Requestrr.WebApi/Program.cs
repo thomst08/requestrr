@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Requestrr.WebApi.config;
 using Requestrr.WebApi.RequestrrBot;
 using Requestrr.WebApi.RequestrrBot.Locale;
 
@@ -20,6 +21,7 @@ namespace Requestrr.WebApi
     {
         public static int Port = 4545;
         public static string BaseUrl = string.Empty;
+        public static DiagnosticsSettings DiagnosticsSettings = new DiagnosticsSettings();
 
         public static void Main(string[] args)
         {
@@ -29,6 +31,16 @@ namespace Requestrr.WebApi
             if (int.TryParse(Environment.GetEnvironmentVariable("REQUESTRR_PORT"), out int portFromEnv))
             {
                 cliPort = portFromEnv;
+            }
+
+            // Read diagnostic level from environment variable
+            var diagnosticsLevel = Environment.GetEnvironmentVariable("REQUESTRR_DIAGNOSTICS_LEVEL");
+            if (!string.IsNullOrWhiteSpace(diagnosticsLevel))
+            {
+                if (Enum.TryParse<DiagnosticsLevel>(diagnosticsLevel, true, out var level))
+                {
+                    DiagnosticsSettings.Level = level;
+                }
             }
 
             for (int i = 0; i < args.Length; i++)

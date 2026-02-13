@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -41,7 +42,19 @@ namespace Requestrr.WebApi.RequestrrBot
 
         public static Type Build(ILogger logger, DiscordSettings settings, RadarrSettingsProvider radarrSettingsProvider, SonarrSettingsProvider sonarrSettingsProvider, OverseerrSettingsProvider overseerrSettingsProvider, OmbiSettingsProvider ombiSettingsProvider, LidarrSettingsProvider lidarrSettingsProvider)
         {
+            var buildStopwatch = Stopwatch.StartNew();
+
             string code = GetCode(settings, radarrSettingsProvider.Provide(), sonarrSettingsProvider.Provide(), overseerrSettingsProvider.Provide(), ombiSettingsProvider.Provide(), lidarrSettingsProvider.Provider());
+
+            var movieCommands = _commandList.ContainsKey(CommandType.Movie) ? _commandList[CommandType.Movie].Count : 0;
+            var tvCommands = _commandList.ContainsKey(CommandType.Tv) ? _commandList[CommandType.Tv].Count : 0;
+            var musicCommands = _commandList.ContainsKey(CommandType.Music) ? _commandList[CommandType.Music].Count : 0;
+            var issueCommands = (_commandList.ContainsKey(CommandType.IssueMovie) ? _commandList[CommandType.IssueMovie].Count : 0) +
+                               (_commandList.ContainsKey(CommandType.IssueTv) ? _commandList[CommandType.IssueTv].Count : 0);
+            var miscCommands = _commandList.ContainsKey(CommandType.Misc) ? _commandList[CommandType.Misc].Count : 0;
+
+            logger.LogInformation($"Building slash commands: {movieCommands} movie, {tvCommands} tv, {musicCommands} music, {issueCommands} issue, {miscCommands} misc");
+
             var tree = SyntaxFactory.ParseSyntaxTree(code);
             string fileName = $"{DLLFileName}-{Guid.NewGuid()}.dll";
 
@@ -79,14 +92,27 @@ namespace Requestrr.WebApi.RequestrrBot
 
             string path = Path.Combine(TempFolder, fileName);
 
+            var compileStopwatch = Stopwatch.StartNew();
             var compilationResult = compilation.Emit(path);
+            compileStopwatch.Stop();
+
             if (compilationResult.Success)
             {
+                logger.LogInformation($"SlashCommand compilation completed in {compileStopwatch.ElapsedMilliseconds}ms");
+
+                var loadStopwatch = Stopwatch.StartNew();
                 var asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(path);
-                return asm.GetType("Requestrr.WebApi.RequestrrBot.SlashCommands");
+                var type = asm.GetType("Requestrr.WebApi.RequestrrBot.SlashCommands");
+                loadStopwatch.Stop();
+
+                buildStopwatch.Stop();
+                logger.LogInformation($"SlashCommand assembly loaded in {loadStopwatch.ElapsedMilliseconds}ms, total build time: {buildStopwatch.ElapsedMilliseconds}ms");
+
+                return type;
             }
             else
             {
+                logger.LogError($"SlashCommand compilation failed after {compileStopwatch.ElapsedMilliseconds}ms");
                 foreach (Diagnostic codeIssue in compilationResult.Diagnostics)
                 {
                     string issue = $"ID: {codeIssue.Id}, Message: {codeIssue.GetMessage()}, Location: {codeIssue.Location.GetLineSpan()},Severity: {codeIssue.Severity}";

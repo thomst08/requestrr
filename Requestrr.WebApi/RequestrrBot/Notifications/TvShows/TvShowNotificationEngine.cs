@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.TvShows;
 
 namespace Requestrr.WebApi.RequestrrBot.Notifications.TvShows
@@ -37,10 +39,13 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.TvShows
                 while (!_tokenSource.IsCancellationRequested)
                 {
                     var currentRequests = new Dictionary<int, TvShowNotification[]>();
+                    var cycleStopwatch = Stopwatch.StartNew();
+                    var notifiedCount = 0;
 
                     try
                     {
                         currentRequests = _notificationRequestRepository.GetAllTvShowNotifications();
+                        _logger.LogNotificationStart(Program.DiagnosticsSettings, "TvShow", currentRequests.Count);
                         var tvShows = (await _tvShowSearcher.GetTvShowDetailsAsync(new HashSet<int>(currentRequests.Keys), _tokenSource.Token)).ToDictionary(x => x.TheTvDbId, x => x);
 
                         foreach (var request in currentRequests.Where(x => tvShows.ContainsKey(x.Key)))
@@ -59,6 +64,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.TvShows
                                     if (tvShows[request.Key].Seasons.Any(x => x.SeasonNumber == seasonNotifications.Key && x.IsAvailable))
                                     {
                                         var notifiedUsers = await _notifier.NotifyAsync(userIds, tvShows[request.Key], seasonNotifications.Key, _tokenSource.Token);
+                                        notifiedCount += notifiedUsers.Count;
 
                                         foreach (var sentNotification in seasonNotifications.Where(x => notifiedUsers.Contains(x.UserId)))
                                         {
@@ -103,6 +109,9 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.TvShows
                             }
                         }
                     }
+
+                    cycleStopwatch.Stop();
+                    _logger.LogNotificationCycle(Program.DiagnosticsSettings, "TvShow", currentRequests.Count, currentRequests.Count, notifiedCount, cycleStopwatch.ElapsedMilliseconds);
 
                     await Task.Delay(TimeSpan.FromMinutes(5), _tokenSource.Token);
                 }

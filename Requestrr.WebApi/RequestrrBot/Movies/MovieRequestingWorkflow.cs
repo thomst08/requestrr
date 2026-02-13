@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Requestrr.WebApi.RequestrrBot.Logging;
 
 namespace Requestrr.WebApi.RequestrrBot.Movies
 {
@@ -13,6 +16,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         private readonly IMovieRequester _requester;
         private readonly IMovieUserInterface _userInterface;
         private readonly IMovieNotificationWorkflow _notificationWorkflow;
+        private readonly ILogger _logger;
 
         public MovieRequestingWorkflow(
             MovieUserRequester user,
@@ -20,7 +24,8 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             IMovieSearcher searcher,
             IMovieRequester requester,
             IMovieUserInterface userInterface,
-            IMovieNotificationWorkflow movieNotificationWorkflow)
+            IMovieNotificationWorkflow movieNotificationWorkflow,
+            ILogger logger)
         {
             _categoryId = categoryId;
             _user = user;
@@ -28,6 +33,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = movieNotificationWorkflow;
+            _logger = logger;
         }
 
         public async Task SearchMovieAsync(string movieName)
@@ -68,11 +74,20 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             IReadOnlyList<Movie> movies = Array.Empty<Movie>();
 
             movieName = movieName.Replace(".", " ");
+            _logger.LogWorkflowStart("Movie", _user.UserId, movieName);
+
+            var stopwatch = Stopwatch.StartNew();
             movies = await _searcher.SearchMovieAsync(new MovieRequest(_user, _categoryId), movieName);
+            stopwatch.Stop();
 
             if (!movies.Any())
             {
+                _logger.LogInformation($"Movie search completed in {stopwatch.ElapsedMilliseconds}ms, found 0 results for '{movieName}'");
                 await _userInterface.WarnNoMovieFoundAsync(movieName);
+            }
+            else
+            {
+                _logger.LogWorkflowComplete("Movie search", stopwatch.ElapsedMilliseconds, movies.Count);
             }
 
             return movies;
@@ -107,14 +122,20 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         public async Task RequestMovieAsync(int theMovieDbId)
         {
             var movie = await _searcher.SearchMovieAsync(new MovieRequest(_user, _categoryId), theMovieDbId);
+
+            _logger.LogInformation($"User {_user.UserId} requesting movie: '{movie.Title}' (TMDB: {theMovieDbId})");
+            var stopwatch = Stopwatch.StartNew();
             var result = await _requester.RequestMovieAsync(new MovieRequest(_user, _categoryId), movie);
+            stopwatch.Stop();
 
             if (result.WasDenied)
             {
+                _logger.LogWarning($"Movie request denied for '{movie.Title}' in {stopwatch.ElapsedMilliseconds}ms");
                 await _userInterface.DisplayRequestDeniedAsync(movie);
             }
             else
             {
+                _logger.LogInformation($"Movie request submitted successfully for '{movie.Title}' in {stopwatch.ElapsedMilliseconds}ms");
                 await _userInterface.DisplayRequestSuccessAsync(movie);
                 await _notificationWorkflow.NotifyForNewRequestAsync(_user.UserId, movie);
             }

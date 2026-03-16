@@ -150,6 +150,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Radarr
                 Categories = model.Categories,
                 SearchNewRequests = model.SearchNewRequests,
                 MonitorNewRequests = model.MonitorNewRequests,
+                AutoTagRequesters = model.AutoTagRequesters,
                 UseSSL = model.UseSSL,
                 Version = model.Version
             };

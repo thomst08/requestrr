@@ -72,19 +72,17 @@ function Logs() {
   const [stats, setStats] = useState(null);
 
 
-  // Get token from Redux or localStorage
+  // Get token from Redux or localStorage (may be null if auth is disabled)
   useEffect(() => {
     const authToken = userState?.token || window.localStorage.getItem("token");
-    setToken(authToken);
+    setToken(authToken || "");
   }, [userState]);
 
-  // Load data once token is available
+  // Load data on mount (token may be empty when auth is disabled)
   useEffect(() => {
-    if (token) {
-      loadSettings(token);
-      loadLogs(token);
-      loadStats(token);
-    }
+    loadSettings(token);
+    loadLogs(token);
+    loadStats(token);
   }, [token]);
 
   useEffect(() => {
@@ -93,14 +91,8 @@ function Logs() {
 
 
   const loadSettings = (authToken = token) => {
-    if (!authToken) {
-      console.error("No authentication token available");
-      return;
-    }
     Axios.get("/api/logs/settings", {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+      headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
     })
       .then(response => {
         setLoggingEnabled(response.data.enabled);
@@ -116,14 +108,8 @@ function Logs() {
   };
 
   const loadLogs = (authToken = token) => {
-    if (!authToken) {
-      console.error("No authentication token available");
-      return;
-    }
     Axios.get(`/api/logs?days=${filterDays}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+      headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
     })
       .then(response => {
         setLogs(response.data);
@@ -135,14 +121,8 @@ function Logs() {
   };
 
   const loadStats = (authToken = token) => {
-    if (!authToken) {
-      console.error("No authentication token available");
-      return;
-    }
     Axios.get(`/api/logs/stats?days=${filterDays}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`
-      }
+      headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
     })
       .then(response => {
         setStats(response.data);
@@ -170,12 +150,6 @@ function Logs() {
   };
 
   const saveSettings = () => {
-    if (!token) {
-      setSaveAttempted(true);
-      setSaveError("No authentication token available. Please log in again.");
-      return;
-    }
-
     setIsSavingSettings(true);
     setSaveAttempted(true);
 
@@ -185,9 +159,7 @@ function Logs() {
       discordLoggingEnabled: discordLoggingEnabled,
       discordChannelId: discordChannelId
     }, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     })
       .then(() => {
         setSaveSuccess(true);

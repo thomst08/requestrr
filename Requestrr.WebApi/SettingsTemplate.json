@@ -87,6 +87,7 @@
       ],
       "SearchNewRequests": true,
       "MonitorNewRequests": true,
+      "AutoTagRequesters": false,
       "UseSSL": false,
       "Version": "3"
     },
@@ -109,6 +110,7 @@
       ],
       "SearchNewRequests": true,
       "MonitorNewRequests": true,
+      "AutoTagRequesters": false,
       "UseSSL": false,
       "Version": "4"
     }

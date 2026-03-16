@@ -298,6 +298,21 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson.ChatClients.Discord).Add("MusicRoles", JToken.FromObject(new List<string>()));
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
+
+            if (settingsJson.Version.ToString().Equals("2.1.3", StringComparison.InvariantCultureIgnoreCase))
+            {
+                settingsJson.Version = "2.1.4";
+
+                var radarrObj = (JObject)settingsJson["DownloadClients"]["Radarr"];
+                if (radarrObj.Property("AutoTagRequesters") == null)
+                    radarrObj.Add("AutoTagRequesters", false);
+
+                var sonarrObj = (JObject)settingsJson["DownloadClients"]["Sonarr"];
+                if (sonarrObj.Property("AutoTagRequesters") == null)
+                    sonarrObj.Add("AutoTagRequesters", false);
+
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
         }
     }
 }

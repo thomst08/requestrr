@@ -7,6 +7,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Sonarr
         public SonarrSettingsCategory[] Categories { get; set; } = Array.Empty<SonarrSettingsCategory>();
         public bool SearchNewRequests { get; set; }
         public bool MonitorNewRequests { get; set; }
+        public bool AutoTagRequesters { get; set; }
     }
 
     public class SonarrSettingsCategory

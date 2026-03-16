@@ -34,6 +34,7 @@ function Sonarr(props) {
   const [baseUrl, setBaseUrl] = useState("");
   const [searchNewRequests, setSearchNewRequests] = useState(true);
   const [monitorNewRequests, setMonitorNewRequests] = useState(true);
+  const [autoTagRequesters, setAutoTagRequesters] = useState(false);
 
   const pastState = useRef();
 
@@ -68,7 +69,7 @@ function Sonarr(props) {
 
   useEffect(() => {
     onValueChange();
-  }, [apiVersion, apiKey, hostname, port, baseUrl, monitorNewRequests, searchNewRequests, useSSL, reduxState.settings.areLanguagesValid]);
+  }, [apiVersion, apiKey, hostname, port, baseUrl, monitorNewRequests, searchNewRequests, autoTagRequesters, useSSL, reduxState.settings.areLanguagesValid]);
 
 
 
@@ -117,6 +118,7 @@ function Sonarr(props) {
     setBaseUrl(reduxState.settings.baseUrl);
     setSearchNewRequests(reduxState.settings.searchNewRequests);
     setMonitorNewRequests(reduxState.settings.monitorNewRequests);
+    setAutoTagRequesters(reduxState.settings.autoTagRequesters);
   };
 
 
@@ -186,6 +188,7 @@ function Sonarr(props) {
       version: apiVersion,
       searchNewRequests: searchNewRequests,
       monitorNewRequests: monitorNewRequests,
+      autoTagRequesters: autoTagRequesters,
     });
 
     onValidate();
@@ -369,6 +372,23 @@ function Sonarr(props) {
                 <span className="text-muted">Automatically search for episodes when a request is made</span>
               </label>
             </FormGroup>
+            {apiVersion !== "2" ?
+              <FormGroup className="custom-control custom-control-alternative custom-checkbox mb-3">
+                <Input
+                  className="custom-control-input"
+                  id="SonarrAutoTagRequesters"
+                  type="checkbox"
+                  onChange={e => { setAutoTagRequesters(!autoTagRequesters); }}
+                  checked={autoTagRequesters}
+                />
+                <label
+                  className="custom-control-label"
+                  htmlFor="SonarrAutoTagRequesters">
+                  <span className="text-muted">Automatically tag requests with Discord username</span>
+                </label>
+              </FormGroup>
+              : null
+            }
           </Col>
         </Row>
       </div>

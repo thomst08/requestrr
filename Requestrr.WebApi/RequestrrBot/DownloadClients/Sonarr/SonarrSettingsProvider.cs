@@ -15,6 +15,7 @@
                 Categories =  settings.DownloadClients.Sonarr.Categories.ToObject<SonarrCategory[]>(),
                 SearchNewRequests  = settings.DownloadClients.Sonarr.SearchNewRequests,
                 MonitorNewRequests  = settings.DownloadClients.Sonarr.MonitorNewRequests,
+                AutoTagRequesters = settings.DownloadClients.Sonarr.AutoTagRequesters != null ? (bool)settings.DownloadClients.Sonarr.AutoTagRequesters : false,
                 UseSSL = (bool)settings.DownloadClients.Sonarr.UseSSL,
                 Version = settings.DownloadClients.Sonarr.Version,
             };

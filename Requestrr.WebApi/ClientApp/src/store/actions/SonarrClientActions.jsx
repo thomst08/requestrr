@@ -483,6 +483,7 @@ export function saveSonarrClient(saveModel) {
                 'UseSSL': saveModel.sonarr.useSSL,
                 'SearchNewRequests': saveModel.sonarr.searchNewRequests,
                 'MonitorNewRequests': saveModel.sonarr.monitorNewRequests,
+                'AutoTagRequesters': saveModel.sonarr.autoTagRequesters,
                 "Version": saveModel.sonarr.version,
                 'Restrictions': saveModel.restrictions,
             })
@@ -499,6 +500,7 @@ export function saveSonarrClient(saveModel) {
                         categories: state.tvShows.sonarr.categories,
                         searchNewRequests: saveModel.sonarr.searchNewRequests,
                         monitorNewRequests: saveModel.sonarr.monitorNewRequests,
+                        autoTagRequesters: saveModel.sonarr.autoTagRequesters,
                         useSSL: saveModel.sonarr.useSSL,
                         version: saveModel.sonarr.version,
                         restrictions: saveModel.restrictions,

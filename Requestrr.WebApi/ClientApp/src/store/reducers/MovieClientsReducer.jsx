@@ -40,6 +40,7 @@ export default function MovieClientsReducer(state = {}, action) {
         categories: action.payload.radarr.categories,
         searchNewRequests: action.payload.radarr.searchNewRequests,
         monitorNewRequests: action.payload.radarr.monitorNewRequests,
+        autoTagRequesters: action.payload.radarr.autoTagRequesters,
         version: action.payload.radarr.version,
         isLoadingPaths: false,
         hasLoadedPaths: false,

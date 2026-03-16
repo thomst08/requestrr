@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from 'react-redux';
 import { Alert } from "reactstrap";
 import Axios from "axios";
+import MultiDropdown from "../components/Inputs/MultiDropdown.jsx";
 
 // reactstrap components
 import {
@@ -342,17 +343,19 @@ function Logs() {
                     {discordLoggingEnabled && (
                       <Row>
                         <Col lg="6">
-                          <FormGroup>
-                            <label className="form-control-label">Discord Channel ID</label>
-                            <Input
-                              className="form-control-alternative"
-                              type="text"
-                              value={discordChannelId}
-                              onChange={(e) => setDiscordChannelId(e.target.value)}
-                              placeholder="Enter Discord channel ID"
-                            />
-                            <small className="text-muted">Right-click channel → Copy ID (requires Developer Mode)</small>
-                          </FormGroup>
+                          <MultiDropdown
+                            name="Discord Channel ID"
+                            create={true}
+                            searchable={true}
+                            placeholder="Enter channel ID here."
+                            labelField="name"
+                            valueField="id"
+                            dropdownHandle={false}
+                            selectedItems={discordChannelId ? [{ name: discordChannelId, id: discordChannelId }] : []}
+                            items={discordChannelId ? [{ name: discordChannelId, id: discordChannelId }] : []}
+                            onChange={newChannels => setDiscordChannelId(newChannels.filter(x => /\S/.test(x.id)).map(x => x.id.trim().replace(/#/g, '')).pop() || "")}
+                          />
+                          <small className="text-muted">Right-click channel → Copy ID (requires Developer Mode)</small>
                         </Col>
                       </Row>
                     )}

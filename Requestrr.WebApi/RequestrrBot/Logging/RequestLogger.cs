@@ -238,14 +238,22 @@ namespace Requestrr.WebApi.RequestrrBot.Logging
         {
             try
             {
-                if (_discordClient == null || !ulong.TryParse(channelId, out var channelIdUlong))
+                if (_discordClient == null)
                 {
+                    _logger.LogWarning("Discord logging: client is null, cannot send log entry.");
+                    return;
+                }
+
+                if (!ulong.TryParse(channelId, out var channelIdUlong))
+                {
+                    _logger.LogWarning($"Discord logging: invalid channel ID '{channelId}'.");
                     return;
                 }
 
                 var channel = await _discordClient.GetChannelAsync(channelIdUlong);
                 if (channel == null)
                 {
+                    _logger.LogWarning($"Discord logging: channel '{channelId}' not found or not accessible.");
                     return;
                 }
 

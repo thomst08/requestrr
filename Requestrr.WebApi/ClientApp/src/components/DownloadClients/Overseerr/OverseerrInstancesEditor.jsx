@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useSelector } from 'react-redux';
 import {
   Button,
   FormGroup,
@@ -20,15 +19,10 @@ import {
  * Props:
  *   - instances: current instances array
  *   - onChange: (newInstances) => void
- *   - kind: 'movies' | 'tvshows' (only used for redux selector path)
  */
 function OverseerrInstancesEditor(props) {
   const instances = props.instances || [];
   const [error, setError] = useState("");
-
-  const overseerr = useSelector((state) => {
-    return props.kind === "tvshows" ? state.tvShows.overseerr : state.movies.overseerr;
-  });
 
   const nextInstanceId = () => {
     let id = 1;

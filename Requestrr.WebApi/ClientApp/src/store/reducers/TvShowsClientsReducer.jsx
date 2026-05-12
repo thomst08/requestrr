@@ -26,6 +26,7 @@ export default function TvShowsClientsReducer(state = {}, action) {
         useMovieIssue: action.payload.overseerr.useMovieIssue,
         useTVIssue: action.payload.overseerr.useTVIssue,
         version: action.payload.overseerr.version,
+        instances: action.payload.overseerr.instances || [],
         sonarrServiceSettings: { sonarrServices: [] },
         isLoadinSonarrServiceSettings: false,
         hasLoadedSonarrServiceSettings: false,

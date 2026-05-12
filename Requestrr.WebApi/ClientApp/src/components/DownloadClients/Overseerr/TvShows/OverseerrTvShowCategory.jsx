@@ -108,7 +108,7 @@ function OverseerrTvShowCategory(props) {
 
   const deleteCategory = () => {
     setIsOpen(false);
-    setTimeout(() => dispatch(removeOverseerrCategory(props.category.id), 150));
+    setTimeout(() => dispatch(removeOverseerrCategory(props.category.id)), 150);
   };
   
   

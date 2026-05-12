@@ -113,7 +113,7 @@ function RadarrCategory(props) {
 
   const deleteCategory = () => {
     setIsOpen(false);
-    setTimeout(() => dispatch(removeRadarrCategory(props.category.id), 150));
+    setTimeout(() => dispatch(removeRadarrCategory(props.category.id)), 150);
   };
 
 

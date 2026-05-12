@@ -116,7 +116,7 @@ function LidarrCategory(props) {
 
   const deleteCategory = () => {
     setIsOpen(false);
-    setTimeout(() => dispatch(removeLidarrCategory(props.category.id), 150));
+    setTimeout(() => dispatch(removeLidarrCategory(props.category.id)), 150);
   };
 
 

@@ -111,7 +111,7 @@ function SonarrCategory(props) {
 
   const deleteCategory = () => {
     setIsOpen(false);
-    setTimeout(() => dispatch(removeSonarrCategory(props.category.id), 150));
+    setTimeout(() => dispatch(removeSonarrCategory(props.category.id)), 150);
   };
 
 

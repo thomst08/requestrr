@@ -191,11 +191,19 @@ function OverseerrMovie(props) {
 
       if (new Set(names).size !== names.length) {
         return false;
-      } else if (reduxState.settings.radarrServiceSettings.radarrServices.every(x => x.id !== category.serviceId) || matchedTV.length !== 0) {
+      } else if (matchedTV.length !== 0) {
         return false;
-      } else {
-        let radarrService = reduxState.settings.radarrServiceSettings.radarrServices.filter(x => x.id === category.serviceId)[0];
+      }
 
+      // Service / path / profile lookup is only valid for the primary
+      // instance — we don't fetch per-instance Radarr services so we
+      // can't verify categories that target a non-default instance.
+      const usesPrimaryInstance = !category.instanceId || Number(category.instanceId) === 0;
+      if (usesPrimaryInstance) {
+        if (reduxState.settings.radarrServiceSettings.radarrServices.every(x => x.id !== category.serviceId)) {
+          return false;
+        }
+        let radarrService = reduxState.settings.radarrServiceSettings.radarrServices.filter(x => x.id === category.serviceId)[0];
         if (radarrService.profiles.length === 0 || radarrService.rootPaths.length === 0) {
           return false;
         }

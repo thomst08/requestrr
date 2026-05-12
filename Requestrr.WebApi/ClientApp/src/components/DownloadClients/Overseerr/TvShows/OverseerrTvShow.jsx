@@ -196,11 +196,19 @@ function OverseerrTvShow(props) {
 
       if (new Set(names).size !== names.length) {
         return false;
-      } else if (reduxState.settings.sonarrServiceSettings.sonarrServices.every(x => x.id !== category.serviceId) || matchedMovie.length !== 0) {
+      } else if (matchedMovie.length !== 0) {
         return false;
-      } else {
-        let sonarrService = reduxState.settings.sonarrServiceSettings.sonarrServices.filter(x => x.id === category.serviceId)[0];
+      }
 
+      // Service / path / profile lookup is only valid for the primary
+      // instance — we don't fetch per-instance Sonarr services so we
+      // can't verify categories that target a non-default instance.
+      const usesPrimaryInstance = !category.instanceId || Number(category.instanceId) === 0;
+      if (usesPrimaryInstance) {
+        if (reduxState.settings.sonarrServiceSettings.sonarrServices.every(x => x.id !== category.serviceId)) {
+          return false;
+        }
+        let sonarrService = reduxState.settings.sonarrServiceSettings.sonarrServices.filter(x => x.id === category.serviceId)[0];
         if (sonarrService.profiles.length === 0 || sonarrService.rootPaths.length === 0) {
           return false;
         }

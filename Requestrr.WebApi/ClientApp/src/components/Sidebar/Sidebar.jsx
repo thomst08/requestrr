@@ -186,19 +186,6 @@ function Sidebar(props) {
               <a className="nav-link" target="_blank" rel="noreferrer" href="https://req.crios.app"><i className="fas big fa-film"></i>Request media</a>
             </li>
           </ul>
-          <hr className="my-3" />
-          <h6 className="navbar-heading text-muted">Support</h6>
-          <ul className="mb-md-3 navbar-nav">
-            <li className="nav-item">
-              <a className="nav-link" target="_blank" rel="noreferrer" href="https://github.com/thomst08/requestrr/wiki"><i className="fas big fa-book"></i>Wiki</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" target="_blank" rel="noreferrer" href="https://discord.gg/atjrUen5fJ"><i className="fab big fa-discord"></i>Discord</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" target="_blank" rel="noreferrer" href="https://github.com/thomst08/requestrr/issues"><i className="fab big fa-github"></i>Github</a>
-            </li>
-          </ul>
         </Collapse>
       </Container>
     </Navbar>

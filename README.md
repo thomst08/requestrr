@@ -1,114 +1,77 @@
-[![Paypal](https://img.shields.io/badge/Paypal-Donate-success?style=for-the-badge&logo=paypal)](https://www.paypal.com/donate/?business=QT2Y72ABMYJNG&no_recurring=0&currency_code=AUD) 
 [![Discord](https://img.shields.io/discord/674782527139086350?color=7289DA&label=Discord&style=for-the-badge&logo=discord)](https://discord.gg/atjrUen5fJ)
-[![DockerHub](https://img.shields.io/badge/Docker-Hub-%23099cec?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thomst08/requestrr)
-[![DockerHub](https://img.shields.io/badge/GitHub-Repo-lightgrey?style=for-the-badge&logo=github)](https://github.com/thomst08/requestrr/)
 
 
-Requestrr 
+CRIOS Request
 =================
 
 ![logo](https://i.imgur.com/0UzLYvw.png)
 
-Requestrr is a chatbot used to simplify using services like Sonarr/Radarr/Lidarr/Overseerr/Ombi via the use of chat!  
+CRIOS Request is a chatbot used to simplify using services like Sonarr / Radarr / Lidarr / Overseerr / Jellyseerr / Ombi via Discord. It is the request-side companion to CRIOS Watchlist (followarr).
 
 ### Features
 
-- Ability to request content via Discord using slash commands, buttons and more!
-- Users can get notified when their requests complete
-- Sonarr (V2-V4) & Radarr (V2-V5) integration with support for multiple instance via Overseerr (only for 4k/1080p)
-- Lidarr (V1-V2) intergration
-- Overseerr integration with support for per user permissions/quotas and issue submission
-- Ombi (V3/V4) integration with support for per user roles/quotas and issue submission
-- Fully configurable via a web portal
+- Request media via Discord using slash commands, buttons, and dropdowns
+- Users get notified when their requests are fulfilled
+- Sonarr (V2-V4) & Radarr (V2-V5) integration, with support for multiple instances via Overseerr/Jellyseerr (4k/1080p)
+- Lidarr (V1-V2) integration
+- Overseerr / Jellyseerr integration with per-user permissions/quotas and issue submission — including multi-instance routing so different categories can dispatch to different servers (e.g. `req.crios.app` vs `req.crios.media`)
+- Ombi (V3/V4) integration with per-user roles/quotas and issue submission
+- Fully configurable through a CRIOS-themed web portal
 
 <br />
 
-Installation & Configuration
+Installation
 ==================
 
-Refer to the Wiki for detailed steps:
-https://github.com/thomst08/requestrr/wiki
-
-<br />
-
-Docker Set-up & Start
-==================
-
-Open a command prompt/terminal and then use the following command create and start the container:
+Build the container from this repository (the `dockerfile` lives next to the .NET project), publish it to your registry, and run:
 
 ```
-    docker run -d \
-      --name requestrr \
-      -p 4545:4545 \
-      -v path to config:/root/config \
-      --restart=unless-stopped \
-      thomst08/requestrr
-```
-
-You can also choose to run the container as a different user. See [docker run](https://docs.docker.com/engine/reference/run/#user) reference for how to set the user for your container.
-
-Then simply access the web portal at http://youraddress:4545/ to create your admin account, then you can configure everything through the web portal. <br />
-Once you have configured the bot and invited it to your Discord server, simply type **/help** to see all available commands.
-
-If you just need commands to quickly setup Requestrr with no issues, use the following commands:
-
-```
-mkdir /opt/Requestrr
-mkdir /opt/Requestrr/config
 docker run -d \
-  --name requestrr \
+  --name crios-request \
   -p 4545:4545 \
-  -v /opt/Requestrr/config:/root/config \
+  -v /path/to/config:/root/config \
   --restart=unless-stopped \
-  thomst08/requestrr
+  your-registry/crios-request
 ```
+
+Then access the web portal at `http://your-host:4545/` to create your admin account and finish configuration. Once the bot is invited to your Discord server, type **/help** to see the available commands.
 
 <br />
 
 Environment Variables
 ==================
 
-Requestrr supports the following environment variables to help you customize your deployment:
-
-#### `REQUESTRR_PORT`
+#### `CRIOS_PORT`
 
 * **Description**: Sets the port the application listens on **inside** the container.
 * **Default**: `4545`
-* **Example**: `-e REQUESTRR_PORT=5000`
+* **Example**: `-e CRIOS_PORT=5000`
 
-#### `REQUESTRR_BASEURL`
+#### `CRIOS_BASE_URL`
 
-* **Description**: Defines a base URL path for Requestrr. Useful when deploying behind a reverse proxy with a subpath (e.g. `/requestrr`).
+* **Description**: Base URL path, for deployments behind a reverse proxy with a subpath (e.g. `/crios`).
 * **Default**: `/`
-* **Example**: `-e REQUESTRR_BASEURL=/requestrr`
+* **Example**: `-e CRIOS_BASE_URL=/crios`
 
-#### Example Docker Command with Environment Variables
+#### Example with environment variables
 
 ```bash
 docker run -d \
-  --name requestrr \
+  --name crios-request \
   -p 5000:5000 \
-  -v /opt/Requestrr/config:/root/config \
-  -e REQUESTRR_PORT=5000 \
-  -e REQUESTRR_BASEURL=/requestrr \
+  -v /opt/crios-request/config:/root/config \
+  -e CRIOS_PORT=5000 \
+  -e CRIOS_BASE_URL=/crios \
   --restart=unless-stopped \
-  thomst08/requestrr
+  your-registry/crios-request
 ```
 
-> ⚠️ **Note**: When setting `REQUESTRR_BASEURL`, make sure it matches your reverse proxy config if you're serving Requestrr under a subpath.
+> ⚠️ When setting `CRIOS_BASE_URL`, make sure it matches your reverse proxy config if you're serving the app under a subpath.
 
 <br />
 
-Build Instructions
+Companion Projects
 ==================
 
-Refer to the Wiki for detailed steps on how to build:
-https://github.com/thomst08/requestrr/wiki/Build-Instructions
-
-<br>
-
-Thank you list
-==============
-
-Thank you goes out to the following people:
-- [@darkalfx]( https://github.com/darkalfx ) - Creator of Requestrr, without this person, Requestrr would not exist.
+- [followarr](https://github.com/crios-app/followarr) — CRIOS Watchlist, the Discord bot that notifies users when new episodes drop on Plex.
+- [plex-patreon](https://github.com/crios-app/plex-patreon) — Patreon ↔ Plex linking and entitlement enforcement for the CRIOS platform.

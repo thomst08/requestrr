@@ -29,7 +29,7 @@ import { hasRegistered as validateRegistration } from "../store/actions/UserActi
 import { validateLogin } from "../store/actions/UserActions"
 
 import routes from "../routes.js";
-import requestrrLogo from "../assets/img/brand/requestrr.svg";
+import criosLogo from "../assets/img/brand/crios.svg";
 
 function Auth() {
   const [isLoading, setIsLoading] = useState(true);
@@ -89,8 +89,8 @@ function Auth() {
                 <Col lg="5" md="6">
                   <p><img
                     style={{ width: '100%' }}
-                    alt="requestrr logo"
-                    src={requestrrLogo}
+                    alt="CRIOS logo"
+                    src={criosLogo}
                   />
                   </p>
                   <p style={{ color: 'white' }} className="mt-4">

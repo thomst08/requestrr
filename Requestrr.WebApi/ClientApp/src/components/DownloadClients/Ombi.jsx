@@ -252,7 +252,7 @@ function Ombi(props) {
             </FormGroup>
           </Col>
           <Col lg="6">
-            <a href="https://github.com/thomst08/requestrr/wiki/Configuring-Ombi#configuring-permissions" target="_blank" rel="noreferrer">Click here to view how configure Ombi permissions with the bot</a>
+            <a href="https://docs.ombi.app/" target="_blank" rel="noreferrer">View Ombi documentation</a>
           </Col>
         </Row>
         <Row>

@@ -23,7 +23,7 @@ import {
   Navbar,
   Container
 } from "reactstrap";
-import requestrrLogo from "../../assets/img/brand/requestrr_white.svg";
+import criosLogo from "../../assets/img/brand/crios_white.svg";
 
 
 function AuthNavbar() {
@@ -35,7 +35,7 @@ function AuthNavbar() {
       >
         <Container className="px-4">
           <NavbarBrand to="/" tag={Link}>
-            <img alt="..." src={requestrrLogo} />
+            <img alt="CRIOS" src={criosLogo} />
           </NavbarBrand>
         </Container>
       </Navbar>

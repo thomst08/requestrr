@@ -59,8 +59,8 @@ namespace Requestrr.WebApi.Controllers.Authentication
             };
 
             var token = new JwtSecurityToken(
-              issuer: "Requestrr",
-              audience: "Requestrr",
+              issuer: "CRIOS",
+              audience: "CRIOS",
               claims,
               expires: DateTime.Now.AddMonths(1),
               signingCredentials: credentials
@@ -121,8 +121,8 @@ namespace Requestrr.WebApi.Controllers.Authentication
             };
 
             var token = new JwtSecurityToken(
-              issuer: "Requestrr",
-              audience: "Requestrr",
+              issuer: "CRIOS",
+              audience: "CRIOS",
               claims,
               expires: DateTime.Now.AddMonths(1),
               signingCredentials: credentials

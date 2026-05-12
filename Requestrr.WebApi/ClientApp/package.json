@@ -1,7 +1,7 @@
 {
-  "name": "requestrr",
+  "name": "crios-request",
   "version": "2.1.8",
-  "description": "Requestrr is a server designed to faciliate the request of media through chat applications.",
+  "description": "CRIOS Request — chat-driven media request service for the CRIOS platform.",
   "main": "index.js",
   "author": "Darkalfx",
   "license": "MIT",

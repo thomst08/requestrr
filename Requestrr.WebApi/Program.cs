@@ -23,10 +23,15 @@ namespace Requestrr.WebApi
 
         public static void Main(string[] args)
         {
-            string cliBaseUrl = Environment.GetEnvironmentVariable("REQUESTRR_BASE_URL");
+            // Prefer the CRIOS-branded env vars; fall back to the legacy
+            // names so existing deployments keep working.
+            string cliBaseUrl = Environment.GetEnvironmentVariable("CRIOS_BASE_URL")
+                ?? Environment.GetEnvironmentVariable("REQUESTRR_BASE_URL");
             int cliPort = -1;
 
-            if (int.TryParse(Environment.GetEnvironmentVariable("REQUESTRR_PORT"), out int portFromEnv))
+            var portEnv = Environment.GetEnvironmentVariable("CRIOS_PORT")
+                ?? Environment.GetEnvironmentVariable("REQUESTRR_PORT");
+            if (int.TryParse(portEnv, out int portFromEnv))
             {
                 cliPort = portFromEnv;
             }
@@ -37,24 +42,22 @@ namespace Requestrr.WebApi
                 {
                     case "--help":
                     case "-h":
-                        Console.WriteLine($"Requestrr version: {Language.BuildVersion}");
+                        Console.WriteLine($"CRIOS Request — version: {Language.BuildVersion}");
                         Console.WriteLine("Description:");
-                        Console.WriteLine("  A chatbot used to connectservices like Sonarr/Radarr/Overseerr/Ombi to Discord\n");
+                        Console.WriteLine("  A chatbot that connects services like Sonarr/Radarr/Overseerr/Ombi to Discord.\n");
                         Console.WriteLine("Options:");
-                        Console.WriteLine("  -h, --help           Displays the help message and exits the program");
+                        Console.WriteLine("  -h, --help           Display this help message");
                         Console.WriteLine("  -c, --config-dir     Change the config folder");
-                        Console.WriteLine("                       Example: Requestrr.WebApi.exe -c \"C:\\Requestrr\\config\"");
-                        Console.WriteLine("                                Requestrr.WebApi -c /opt/Requestrr/config");
-                        Console.WriteLine("                                Requestrr.WebApi.exe -c ./config");
-                        Console.WriteLine("  -p, --port           Change the port of Requestrr, this will update the config file");
-                        Console.WriteLine("                       This allows for the changing of the port used for Requestrr, eg: http://localhost:port");
-                        Console.WriteLine("                       Example: Requestrr.WebApi.exe -p 4546");
-                        Console.WriteLine("                                Requestrr.WebApi --port 4547");
-                        Console.WriteLine("  -u, --base-url       Change the base URL of Requestrr, this will update the config file");
-                        Console.WriteLine("                       This allows the changing of the base URL to access Requestrr, eg: http://localhost:4545/baseURL");
-                        Console.WriteLine("                       Example: Requestrr.WebApi.exe -u \"/requestrr\"");
-                        Console.WriteLine("                                Requestrr.WebApi --base-url \"/\"");
-                        Console.WriteLine("                                Requestrr.WebApi.exe -u \"\"");
+                        Console.WriteLine("                       Example: -c \"C:\\CRIOS\\config\"");
+                        Console.WriteLine("                                -c /opt/crios/config");
+                        Console.WriteLine("                                -c ./config");
+                        Console.WriteLine("  -p, --port           Change the listening port; this updates the config file");
+                        Console.WriteLine("                       Example: -p 4546");
+                        Console.WriteLine("                                --port 4547");
+                        Console.WriteLine("  -u, --base-url       Change the base URL; this updates the config file");
+                        Console.WriteLine("                       Example: -u \"/crios\"");
+                        Console.WriteLine("                                --base-url \"/\"");
+                        Console.WriteLine("                                -u \"\"");
                         return;
                     case "--config-dir":
                     case "-c":

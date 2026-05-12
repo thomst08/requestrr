@@ -1,9 +1,9 @@
 version: "3.4"
 services:
-  requestrr:
-    image: thomst08/requestrr
-    hostname: requestrr
-    container_name: requestrr
+  crios-request:
+    image: your-registry/crios-request
+    hostname: crios-request
+    container_name: crios-request
     ports:
     - 4545:4545
     volumes:

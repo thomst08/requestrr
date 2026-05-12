@@ -26,7 +26,7 @@ import Sidebar from "../components/Sidebar/Sidebar.jsx";
 import { validateLogin } from "../store/actions/UserActions"
 
 import routes from "../routes.js";
-import requestrrLogo from "../assets/img/brand/requestrr_black.svg";
+import criosLogo from "../assets/img/brand/crios_black.svg";
 
 
 function Admin(props) {
@@ -77,8 +77,8 @@ function Admin(props) {
           routes={routes}
           logo={{
             innerLink: "/admin/",
-            imgSrc: requestrrLogo,
-            imgAlt: "Requestrr Logo"
+            imgSrc: criosLogo,
+            imgAlt: "CRIOS Logo"
           }}
         />
         <div className="main-content" ref={mainContent}>

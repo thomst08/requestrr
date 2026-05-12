@@ -83,8 +83,8 @@ namespace Requestrr.WebApi
                             ValidateLifetime = true,
                             ClockSkew = TimeSpan.Zero,
                             ValidateIssuerSigningKey = true,
-                            ValidIssuer = "Requestrr",
-                            ValidAudience = "Requestrr",
+                            ValidIssuer = "CRIOS",
+                            ValidAudience = "CRIOS",
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authenticationSettings.GetValue<string>("PrivateKey"))),
                         };
                     });

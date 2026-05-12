@@ -62,10 +62,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         public static DiscordEmbed GenerateMusicArtistDetails(MusicArtist musicArtist)
         {
             DiscordEmbedBuilder embedBuilder = new DiscordEmbedBuilder()
-                .WithTitle(musicArtist.ArtistName)
+                .WithTitle($"🎵 {musicArtist.ArtistName}")
                 .WithTimestamp(DateTime.Now)
                 .WithUrl($"https://musicbrainz.org/artist/{musicArtist.ArtistId}")
-                .WithFooter("Powered by Requestrr");
+                .WithColor(DiscordConstants.CriosAccent)
+                .WithFooter(DiscordConstants.CriosFooter);
 
             if (!string.IsNullOrWhiteSpace(musicArtist.Overview))
                 embedBuilder.WithDescription(musicArtist.Overview.Substring(0, Math.Min(musicArtist.Overview.Length, 255)) + "(...)");

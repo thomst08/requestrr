@@ -33,10 +33,11 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             }
 
             var embedBuilder = new DiscordEmbedBuilder()
-                .WithTitle(title)
+                .WithTitle($"📺 {title}")
                 .WithTimestamp(DateTime.Now)
                 .WithThumbnail("https://thetvdb.com/images/logo.png")
-                .WithFooter("Powered by Requestrr");
+                .WithColor(DiscordConstants.CriosAccent)
+                .WithFooter(DiscordConstants.CriosFooter);
 
             if (!string.IsNullOrWhiteSpace(tvShow.Overview))
             {

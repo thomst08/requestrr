@@ -23,6 +23,25 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         private OverseerrSettingsProvider _overseerrSettingsProvider;
         private OverseerrSettings OverseerrSettings => _overseerrSettingsProvider.Provide();
         private string BaseURL => GetBaseURL(OverseerrSettings);
+
+        // Per-instance helpers: route a request to the Overseerr/Jellyseerr
+        // instance configured for the caller's category (falls back to the
+        // default instance for InstanceId 0 / unknown ids).
+        private string BaseURLForInstance(int instanceId)
+        {
+            var instance = OverseerrSettings.GetInstance(instanceId);
+            if (instance.InstanceId == 0)
+            {
+                return BaseURL;
+            }
+            return GetBaseURL(instance.UseSSL, instance.Hostname, instance.Port, instance.Version);
+        }
+
+        private string ApiKeyForInstance(int instanceId)
+        {
+            var instance = OverseerrSettings.GetInstance(instanceId);
+            return string.IsNullOrEmpty(instance.ApiKey) ? OverseerrSettings.ApiKey : instance.ApiKey;
+        }
         private ConcurrentDictionary<string, int> _requesterIdToOverseerUserID = new ConcurrentDictionary<string, int>();
         private ConcurrentDictionary<string, string> _requesterIdToOverseerDisplayName = new ConcurrentDictionary<string, string>();
         private static OverseerrTvShowCategory DefaultTvShowCategory = new OverseerrTvShowCategory { Is4K = false };
@@ -268,7 +287,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 var category = GetCurrentCategory(request, movieName);
-                var response = await HttpGetAsync($"{BaseURL}search/?query={Uri.EscapeDataString(movieName)}&page=1&language=en");
+                var response = await HttpGetAsync(category.InstanceId, $"{BaseURLForInstance(category.InstanceId)}search/?query={Uri.EscapeDataString(movieName)}&page=1&language=en");
                 await response.ThrowIfNotSuccessfulAsync("OverseerrMovieSearch failed", x => x.error);
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -299,7 +318,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 var category = GetCurrentCategory(request, movieName);
-                var response = await HttpGetAsync($"{BaseURL}search/?query={Uri.EscapeDataString(movieName)}&page=1&language=en");
+                var response = await HttpGetAsync(category.InstanceId, $"{BaseURLForInstance(category.InstanceId)}search/?query={Uri.EscapeDataString(movieName)}&page=1&language=en");
                 await response.ThrowIfNotSuccessfulAsync("OverseerrMovieSearch failed", x => x.error);
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -325,7 +344,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 var category = GetCurrentCategory(request, $"with TMDB Id {theMovieDbId}");
-                var response = await HttpGetAsync($"{BaseURL}movie/{theMovieDbId}");
+                var response = await HttpGetAsync(category.InstanceId, $"{BaseURLForInstance(category.InstanceId)}movie/{theMovieDbId}");
                 await response.ThrowIfNotSuccessfulAsync("OverseerrMovieSearchByMovieDbId failed", x => x.error);
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -372,6 +391,12 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 JSONMedia movies = JsonConvert.DeserializeObject<JSONMedia>(jsonResponse);
 
+                if (movies?.MediaInfo == null)
+                {
+                    _logger.LogWarning($"Cannot submit issue for movie {theMovieDbId}: media information not yet available in Overseerr/Jellyseerr.");
+                    return false;
+                }
+
                 int interalMediaId = movies.MediaInfo.Id;
 
                 var overseerrUser = await FindLinkedOverseerUserDisplayNameAsync(request.User.UserId, request.User.Username);
@@ -399,7 +424,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 var category = GetCurrentCategory(request, $"with TMDB Id {theMovieDbId}");
-                var response = await HttpGetAsync($"{BaseURL}movie/{theMovieDbId}");
+                var response = await HttpGetAsync(category.InstanceId, $"{BaseURLForInstance(category.InstanceId)}movie/{theMovieDbId}");
                 await response.ThrowIfNotSuccessfulAsync("OverseerrMovieSearchByMovieDbId failed", x => x.error);
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -427,6 +452,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                     Permission[] permissions = new[] { Permission.AUTO_APPROVE, Permission.AUTO_APPROVE_MOVIE };
 
                     var category = GetCurrentCategory(request, movie.Title);
+                    var instanceBaseUrl = BaseURLForInstance(category.InstanceId);
 
                     if (category.Is4K)
                     {
@@ -435,14 +461,14 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 
                     if (overseerrUser != null)
                     {
-                        response = await HttpGetAsync($"{BaseURL}user/{overseerrUser}/settings/permissions");
+                        response = await HttpGetAsync(category.InstanceId, $"{instanceBaseUrl}user/{overseerrUser}/settings/permissions");
                         await response.ThrowIfNotSuccessfulAsync("OverseerrGetUserPermissions failed", x => x.error);
                         var jsonResponse = await response.Content.ReadAsStringAsync();
                         var userPermissions = JsonConvert.DeserializeObject<JSONUserPermissions>(jsonResponse);
 
                         if (HasPermission(permissions, userPermissions.Permissions, PermissionCheckOptions.OR))
                         {
-                            response = await HttpPostAsync(null, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                            response = await HttpPostAsync(category.InstanceId, null, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                             {
                                 mediaId = int.Parse(movie.TheMovieDbId),
                                 mediaType = "movie",
@@ -456,7 +482,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                         }
                         else
                         {
-                            response = await HttpPostAsync(overseerrUser, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                            response = await HttpPostAsync(category.InstanceId, overseerrUser, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                             {
                                 mediaId = int.Parse(movie.TheMovieDbId),
                                 mediaType = "movie",
@@ -474,7 +500,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                             jsonResponse = await response.Content.ReadAsStringAsync();
                             var overseerrRequest = JsonConvert.DeserializeObject<JSONRequest>(jsonResponse);
 
-                            response = await HttpPutAsync(null, $"{BaseURL}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
+                            response = await HttpPutAsync(category.InstanceId, null, $"{instanceBaseUrl}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
                             {
                                 mediaType = "movie",
                                 profileId = category.ProfileId,
@@ -487,7 +513,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                     }
                     else
                     {
-                        response = await HttpPostAsync(null, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                        response = await HttpPostAsync(category.InstanceId, null, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                         {
                             mediaId = int.Parse(movie.TheMovieDbId),
                             mediaType = "movie",
@@ -638,6 +664,12 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 
                 var tvShows = JsonConvert.DeserializeObject<JSONMedia>(jsonResponse);
 
+                if (tvShows?.MediaInfo == null)
+                {
+                    _logger.LogWarning($"Cannot submit issue for TV show {theTvDbId}: media information not yet available in Overseerr/Jellyseerr.");
+                    return false;
+                }
+
                 int interalMediaId = tvShows.MediaInfo.Id;
 
                 var overseerrUser = await FindLinkedOverseerUserDisplayNameAsync(request.User.UserId, request.User.Username);
@@ -708,7 +740,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             try
             {
                 var category = GetCurrentCategory(request, $"with TVDB id {theTvDbId}");
-                var response = await HttpGetAsync($"{BaseURL}tv/{theTvDbId}");
+                var response = await HttpGetAsync(category.InstanceId, $"{BaseURLForInstance(category.InstanceId)}tv/{theTvDbId}");
                 await response.ThrowIfNotSuccessfulAsync("OverseerrGetTvShowDetail failed", x => x.error);
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -742,6 +774,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                     Permission[] permissions = new[] { Permission.AUTO_APPROVE, Permission.AUTO_APPROVE_TV };
 
                     var category = GetCurrentCategory(request, tvShow.Title);
+                    var instanceBaseUrl = BaseURLForInstance(category.InstanceId);
 
                     if (category.Is4K)
                     {
@@ -750,14 +783,14 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 
                     if (overseerrUser != null)
                     {
-                        response = await HttpGetAsync($"{BaseURL}user/{overseerrUser}/settings/permissions");
+                        response = await HttpGetAsync(category.InstanceId, $"{instanceBaseUrl}user/{overseerrUser}/settings/permissions");
                         await response.ThrowIfNotSuccessfulAsync("OverseerrGetUserPermissions failed", x => x.error);
                         var jsonResponse = await response.Content.ReadAsStringAsync();
                         var userPermissions = JsonConvert.DeserializeObject<JSONUserPermissions>(jsonResponse);
 
                         if (HasPermission(permissions, userPermissions.Permissions, PermissionCheckOptions.OR))
                         {
-                            response = await HttpPostAsync(null, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                            response = await HttpPostAsync(category.InstanceId, null, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                             {
                                 mediaId = tvShow.TheTvDbId,
                                 mediaType = "tv",
@@ -773,7 +806,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                         }
                         else
                         {
-                            response = await HttpPostAsync(overseerrUser, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                            response = await HttpPostAsync(category.InstanceId, overseerrUser, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                             {
                                 mediaId = tvShow.TheTvDbId,
                                 mediaType = "tv",
@@ -792,7 +825,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                             jsonResponse = await response.Content.ReadAsStringAsync();
                             var overseerrRequest = JsonConvert.DeserializeObject<JSONRequest>(jsonResponse);
 
-                            response = await HttpPutAsync(null, $"{BaseURL}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
+                            response = await HttpPutAsync(category.InstanceId, null, $"{instanceBaseUrl}request/{overseerrRequest.ID}", JsonConvert.SerializeObject(new
                             {
                                 mediaType = "tv",
                                 seasons = wantedSeasonIds.ToArray(),
@@ -807,7 +840,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                     }
                     else
                     {
-                        response = await HttpPostAsync(null, $"{BaseURL}request", JsonConvert.SerializeObject(new
+                        response = await HttpPostAsync(category.InstanceId, null, $"{instanceBaseUrl}request", JsonConvert.SerializeObject(new
                         {
                             mediaId = tvShow.TheTvDbId,
                             mediaType = "tv",
@@ -861,6 +894,10 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         public async Task<SearchedTvShow> SearchTvShowAsync(TvShowRequest request, int tvDbId)
         {
             IReadOnlyList<SearchedTvShow> list = await SearchTvShowAsync(request, $"tvdb:{tvDbId}");
+            if (list == null || list.Count == 0)
+            {
+                throw new System.Exception($"No TV show found with TVDB ID: {tvDbId}");
+            }
             return list.First();
         }
 
@@ -1060,6 +1097,43 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         private Task<HttpResponseMessage> HttpGetAsync(string url)
         {
             return HttpGetAsync(_httpClientFactory.CreateClient(), OverseerrSettings, url);
+        }
+
+        private Task<HttpResponseMessage> HttpGetAsync(int instanceId, string url)
+        {
+            return HttpGetAsync(_httpClientFactory.CreateClient(), ApiKeyForInstance(instanceId), url);
+        }
+
+        private async Task<HttpResponseMessage> HttpPostAsync(int instanceId, string overseerrUserId, string url, string content)
+        {
+            var postRequest = new StringContent(content);
+            postRequest.Headers.Clear();
+            postRequest.Headers.Add("Content-Type", "application/json;charset=utf-8");
+            postRequest.Headers.Add("X-Api-Key", ApiKeyForInstance(instanceId));
+
+            if (!string.IsNullOrWhiteSpace(overseerrUserId))
+            {
+                postRequest.Headers.Add("X-API-User", overseerrUserId);
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            return await client.PostAsync(url, postRequest);
+        }
+
+        private async Task<HttpResponseMessage> HttpPutAsync(int instanceId, string overseerrUserId, string url, string content)
+        {
+            var putRequest = new StringContent(content);
+            putRequest.Headers.Clear();
+            putRequest.Headers.Add("Content-Type", "application/json;charset=utf-8");
+            putRequest.Headers.Add("X-Api-Key", ApiKeyForInstance(instanceId));
+
+            if (!string.IsNullOrWhiteSpace(overseerrUserId))
+            {
+                putRequest.Headers.Add("X-API-User", overseerrUserId);
+            }
+
+            var client = _httpClientFactory.CreateClient();
+            return await client.PutAsync(url, putRequest);
         }
 
         private static async Task<HttpResponseMessage> HttpGetAsync(HttpClient client, OverseerrSettings settings, string url)

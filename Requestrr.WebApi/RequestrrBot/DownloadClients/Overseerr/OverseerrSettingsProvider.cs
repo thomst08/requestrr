@@ -1,10 +1,20 @@
-﻿namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
+using System;
+using Newtonsoft.Json.Linq;
+
+namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 {
     public class OverseerrSettingsProvider
     {
         public OverseerrSettings Provide()
         {
             dynamic settings = SettingsFile.Read();
+            var overseerrJson = settings.DownloadClients.Overseerr as JObject;
+
+            OverseerrInstance[] instances = Array.Empty<OverseerrInstance>();
+            if (overseerrJson != null && overseerrJson.TryGetValue("Instances", out JToken instancesToken) && instancesToken != null && instancesToken.Type != JTokenType.Null)
+            {
+                instances = instancesToken.ToObject<OverseerrInstance[]>() ?? Array.Empty<OverseerrInstance>();
+            }
 
             return new OverseerrSettings
             {
@@ -17,6 +27,7 @@
                 UseMovieIssue = (bool)settings.DownloadClients.Overseerr.UseMovieIssue,
                 UseTVIssue = (bool)settings.DownloadClients.Overseerr.UseTVIssue,
                 Version = settings.DownloadClients.Overseerr.Version,
+                Instances = instances,
             };
         }
     }

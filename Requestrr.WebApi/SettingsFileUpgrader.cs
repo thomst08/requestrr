@@ -21,8 +21,9 @@ namespace Requestrr.WebApi
             {
                 var botClientJson = settingsJson["BotClient"] as JObject;
 
-                var monitoredChannels = !string.IsNullOrWhiteSpace(botClientJson.GetValue("MonitoredChannels").ToString())
-                    ? botClientJson.GetValue("MonitoredChannels").ToString().Split(" ").Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
+                var monitoredChannelsValue = botClientJson?.GetValue("MonitoredChannels");
+                var monitoredChannels = monitoredChannelsValue != null && !string.IsNullOrWhiteSpace(monitoredChannelsValue.ToString())
+                    ? monitoredChannelsValue.ToString().Split(" ").Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
                     : Array.Empty<string>();
 
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MonitoredChannels", JToken.FromObject(monitoredChannels));
@@ -296,6 +297,19 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson["DownloadClients"]).Add("Lidarr", JToken.FromObject(lidarrBlankSettings));
                 ((JObject)settingsJson).Add("Music", JToken.FromObject(musicClient));
                 ((JObject)settingsJson.ChatClients.Discord).Add("MusicRoles", JToken.FromObject(new List<string>()));
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
+
+            if (settingsJson.Version.ToString().Equals("2.1.3", StringComparison.InvariantCultureIgnoreCase))
+            {
+                settingsJson.Version = "2.1.4";
+
+                var overseerrJson = (JObject)settingsJson["DownloadClients"]["Overseerr"];
+                if (overseerrJson != null && !overseerrJson.ContainsKey("Instances"))
+                {
+                    overseerrJson.Add("Instances", JToken.FromObject(Array.Empty<OverseerrInstance>()));
+                }
+
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
         }

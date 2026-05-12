@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
 {
@@ -15,5 +16,18 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
 
         [Required]
         public string Version { get; set; }
+
+        public OverseerrInstanceModel[] Instances { get; set; } = Array.Empty<OverseerrInstanceModel>();
+    }
+
+    public class OverseerrInstanceModel
+    {
+        public int InstanceId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Hostname { get; set; } = string.Empty;
+        public int Port { get; set; } = 5055;
+        public bool UseSSL { get; set; } = false;
+        public string ApiKey { get; set; } = string.Empty;
+        public string Version { get; set; } = "1";
     }
 }

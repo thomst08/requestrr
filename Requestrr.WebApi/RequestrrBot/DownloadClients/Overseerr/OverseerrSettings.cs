@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
 {
@@ -37,6 +38,21 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         public string Name { get; set; }
     }
 
+    /// <summary>
+    /// Represents one extra Overseerr / Jellyseerr instance. Instance 0 is
+    /// always the legacy top-level connection on <see cref="OverseerrSettings"/>.
+    /// </summary>
+    public class OverseerrInstance
+    {
+        public int InstanceId { get; set; } = 0;
+        public string Name { get; set; } = string.Empty;
+        public string Hostname { get; set; } = string.Empty;
+        public int Port { get; set; } = 5055;
+        public bool UseSSL { get; set; } = false;
+        public string ApiKey { get; set; } = string.Empty;
+        public string Version { get; set; } = "1";
+    }
+
     public class OverseerrSettings
     {
         public string Hostname { get; set; } = string.Empty;
@@ -50,6 +66,40 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         public OverseerrMovieSettings Movies { get; set; } = new OverseerrMovieSettings();
         public OverseerrTvShowSettings TvShows { get; set; } = new OverseerrTvShowSettings();
         public string Version { get; set; } = "1";
+
+        /// <summary>
+        /// Additional Overseerr/Jellyseerr instances. The top-level
+        /// connection fields are always treated as instance 0; everything
+        /// in <see cref="Instances"/> must have InstanceId &gt;= 1.
+        /// </summary>
+        public OverseerrInstance[] Instances { get; set; } = Array.Empty<OverseerrInstance>();
+
+        /// <summary>
+        /// Resolve an instance by id. Falls back to instance 0 (the legacy
+        /// top-level fields) when the id is 0 or unknown.
+        /// </summary>
+        public OverseerrInstance GetInstance(int instanceId)
+        {
+            if (instanceId > 0 && Instances != null)
+            {
+                var extra = Instances.FirstOrDefault(i => i.InstanceId == instanceId);
+                if (extra != null)
+                {
+                    return extra;
+                }
+            }
+
+            return new OverseerrInstance
+            {
+                InstanceId = 0,
+                Name = "Default",
+                Hostname = Hostname,
+                Port = Port,
+                UseSSL = UseSSL,
+                ApiKey = ApiKey,
+                Version = Version,
+            };
+        }
     }
 
     public class OverseerrMovieSettings
@@ -67,6 +117,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         public int ProfileId { get; set; } = -1;
         public string RootFolder { get; set; } = string.Empty;
         public int[] Tags { get; set; } = Array.Empty<int>();
+        public int InstanceId { get; set; } = 0;
     }
 
     public class OverseerrTvShowSettings
@@ -85,5 +136,6 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
         public int LanguageProfileId { get; set; } = -1;
         public string RootFolder { get; set; } = string.Empty;
         public int[] Tags { get; set; } = Array.Empty<int>();
+        public int InstanceId { get; set; } = 0;
     }
 }

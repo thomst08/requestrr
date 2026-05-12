@@ -28,7 +28,8 @@ function Footer() {
         <Col xl="6">
           <div className="copyright text-center text-xl-left text-muted">
             © {new Date().getFullYear()}{" "}
-            Requestrr (v2.1.9)
+            <span className="crios-badge">CRIOS</span>
+            <span style={{ marginLeft: '0.5rem' }}>Requestrr (v2.1.9)</span>
           </div>
         </Col>
       </Row>

@@ -94,7 +94,10 @@ function Auth() {
                   />
                   </p>
                   <p style={{ color: 'white' }} className="mt-4">
-                    Your favorite chatbot service for all your media needs
+                    <span className="crios-badge">CRIOS</span>
+                    <span style={{ marginLeft: '0.75rem' }}>
+                      Your favorite chatbot service for all your media needs
+                    </span>
                   </p>
                 </Col>
               </Row>

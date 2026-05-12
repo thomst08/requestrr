@@ -29,6 +29,7 @@ function AuthFooter() {
             <Col xl="6">
               <div className="copyright d-flex justify-content-center text-center text-xl-left text-muted">
                 © {new Date().getFullYear()}{" "}
+                <span className="crios-badge mx-2">CRIOS</span>
                 Requestrr (v2.1.9)
               </div>
             </Col>

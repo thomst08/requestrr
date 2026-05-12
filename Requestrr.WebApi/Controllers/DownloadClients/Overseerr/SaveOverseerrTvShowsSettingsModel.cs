@@ -31,5 +31,6 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
         public int LanguageProfileId { get; set; } = -1;
         public string RootFolder { get; set; } = string.Empty;
         public int[] Tags { get; set; } = Array.Empty<int>();
+        public int InstanceId { get; set; } = 0;
     }
 }

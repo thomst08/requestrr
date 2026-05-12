@@ -33,6 +33,11 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
         [HttpPost("/api/tvshows/overseerr/test")]
         public async Task<IActionResult> TestOverseerrSettings([FromBody] TestOverseerrSettingsModel model)
         {
+            if (model == null || string.IsNullOrWhiteSpace(model.ApiKey) || string.IsNullOrWhiteSpace(model.Hostname))
+            {
+                return BadRequest("Hostname and API key are required.");
+            }
+
             try
             {
                 await OverseerrClient.TestConnectionAsync(_httpClientFactory.CreateClient(), _logger, new RequestrrBot.DownloadClients.Overseerr.OverseerrTestSettings
@@ -56,6 +61,11 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
         [HttpPost("/api/movies/overseerr/radarr")]
         public async Task<ActionResult<RadarrServiceSettings>> GetOverseerrRadarrServiceSettings([FromBody] TestOverseerrSettingsModel model)
         {
+            if (model == null || string.IsNullOrWhiteSpace(model.ApiKey) || string.IsNullOrWhiteSpace(model.Hostname))
+            {
+                return BadRequest("Hostname and API key are required.");
+            }
+
             try
             {
                 var radarrServiceSettings = await OverseerrClient.GetRadarrServiceSettingsAsync(_httpClientFactory.CreateClient(), _logger, new RequestrrBot.DownloadClients.Overseerr.OverseerrTestSettings
@@ -79,6 +89,11 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Overseerr
         [HttpPost("/api/tvshows/overseerr/sonarr")]
         public async Task<ActionResult<SonarrServiceSettings>> GetOverseerrSonarrServiceSettings([FromBody] TestOverseerrSettingsModel model)
         {
+            if (model == null || string.IsNullOrWhiteSpace(model.ApiKey) || string.IsNullOrWhiteSpace(model.Hostname))
+            {
+                return BadRequest("Hostname and API key are required.");
+            }
+
             try
             {
                 var sonarrServiceSettings = await OverseerrClient.GetSonarrServiceSettingsAsync(_httpClientFactory.CreateClient(), _logger, new RequestrrBot.DownloadClients.Overseerr.OverseerrTestSettings

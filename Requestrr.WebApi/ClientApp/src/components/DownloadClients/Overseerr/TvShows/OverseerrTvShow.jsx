@@ -5,9 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from "reactstrap";
 import { testOverseerrTvShowSettings as testSettings } from "../../../../store/actions/OverseerrClientSonarrActions"
 import { setOverseerrTvShowConnectionSettings as setConnectionSettings } from "../../../../store/actions/OverseerrClientSonarrActions"
+import { setOverseerrTvShowInstances as setInstancesAction } from "../../../../store/actions/OverseerrClientSonarrActions"
 import ValidatedTextbox from "../../../Inputs/ValidatedTextbox"
 import Dropdown from "../../../Inputs/Dropdown"
 import OverseerrTvShowCategoryList from "./OverseerrTvShowCategoryList"
+import OverseerrInstancesEditor from "../OverseerrInstancesEditor"
 
 import {
   FormGroup,
@@ -35,6 +37,7 @@ function OverseerrTvShow(props) {
   const [useTVIssue, setUseTVIssue] = useState("");
   const [apiVersion, setApiVersion] = useState("");
   const [isValid, setIsValid] = useState(false);
+  const [instances, setInstances] = useState([]);
 
   const reduxState = useSelector((state) => {
     return {
@@ -52,7 +55,7 @@ function OverseerrTvShow(props) {
 
   useEffect(() => {
     onValueChange();
-  }, [apiVersion, apiKey, hostname, port, defaultApiUserID, useSSL, useTVIssue]);
+  }, [apiVersion, apiKey, hostname, port, defaultApiUserID, useSSL, useTVIssue, instances]);
 
 
 
@@ -87,6 +90,7 @@ function OverseerrTvShow(props) {
     setUseSSL(reduxState.settings.useSSL);
     setUseTVIssue(reduxState.settings.useTVIssue);
     setApiVersion(reduxState.settings.version);
+    setInstances(reduxState.settings.instances || []);
     setIsValid(false);
   };
 
@@ -147,6 +151,7 @@ function OverseerrTvShow(props) {
       useSSL: useSSL,
       useTVIssue: useTVIssue,
       version: apiVersion,
+      instances: instances,
     }));
 
     props.onChange({
@@ -157,9 +162,15 @@ function OverseerrTvShow(props) {
       useSSL: useSSL,
       useTVIssue: useTVIssue,
       version: apiVersion,
+      instances: instances,
     });
 
     onValidate();
+  };
+
+  const onInstancesChange = (newInstances) => {
+    setInstances(newInstances);
+    dispatch(setInstancesAction(newInstances));
   };
 
   const onValidate = () => {
@@ -336,6 +347,11 @@ function OverseerrTvShow(props) {
           </Col>
         </Row>
       </div>
+      <OverseerrInstancesEditor
+        instances={instances}
+        kind="tvshows"
+        onChange={onInstancesChange}
+      />
       <OverseerrTvShowCategoryList isSubmitted={props.isSubmitted} isSaving={props.isSaving} apiVersion={apiVersion} canConnect={isHostnameValid && isPortValid && isApiKeyValid} />
       <h6 className="heading-small text-muted">
         Enable Issues

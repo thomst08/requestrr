@@ -174,19 +174,29 @@ function Sidebar(props) {
             {createLinks(routes)}
           </Nav>
           <hr className="my-3" />
+          <h6 className="navbar-heading text-muted">CRIOS</h6>
+          <ul className="mb-md-3 navbar-nav">
+            <li className="nav-item">
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://join.crios.app"><i className="fas big fa-star"></i>Join CRIOS</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://verify.crios.app"><i className="fas big fa-link"></i>Link account</a>
+            </li>
+            <li className="nav-item">
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://req.crios.app"><i className="fas big fa-film"></i>Request media</a>
+            </li>
+          </ul>
+          <hr className="my-3" />
           <h6 className="navbar-heading text-muted">Support</h6>
           <ul className="mb-md-3 navbar-nav">
             <li className="nav-item">
-              <a className="nav-link" target="_blank" href="https://github.com/thomst08/requestrr/wiki"><i className="fas big fa-book" style={{ color: 'darkgreen' }}></i>Wiki</a>
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://github.com/thomst08/requestrr/wiki"><i className="fas big fa-book"></i>Wiki</a>
             </li>
             <li className="nav-item">
-              <a className="nav-link" target="_blank" href="https://www.paypal.com/donate/?business=QT2Y72ABMYJNG&no_recurring=0&currency_code=AUD"><i className="fas big fa-heart text-red"></i>Donate</a>
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://discord.gg/atjrUen5fJ"><i className="fab big fa-discord"></i>Discord</a>
             </li>
             <li className="nav-item">
-              <a className="nav-link" target="_blank" href="https://discord.gg/atjrUen5fJ"><i className="fab big fa-discord" style={{ color: '#7289DA' }}></i>Discord</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" target="_blank" href="https://github.com/thomst08/requestrr/issues"><i className="fab big fa-github" style={{ color: 'black' }} ></i>Github</a>
+              <a className="nav-link" target="_blank" rel="noreferrer" href="https://github.com/thomst08/requestrr/issues"><i className="fab big fa-github"></i>Github</a>
             </li>
           </ul>
         </Collapse>

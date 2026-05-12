@@ -89,6 +89,9 @@ export function setOverseerrMovieCategory(categoryId, field, data) {
                 else if (field === "is4K") {
                     category.is4K = data;
                 }
+                else if (field === "instanceId") {
+                    category.instanceId = Number(data) || 0;
+                }
 
                 categories[index] = category
             }
@@ -141,6 +144,9 @@ export function setOverseerrMovieConnectionSettings(connectionSettings) {
             useMovieIssue: connectionSettings.useMovieIssue,
             useTVIssue: connectionSettings.useTVIssue,
             version: connectionSettings.version,
+            instances: connectionSettings.instances !== undefined
+                ? connectionSettings.instances
+                : (state.movies.overseerr.instances || []),
         };
 
         dispatch(setOverseerrClient({
@@ -150,6 +156,23 @@ export function setOverseerrMovieConnectionSettings(connectionSettings) {
         return new Promise((resolve, reject) => {
             return { ok: false };
         });
+    };
+};
+
+export function setOverseerrMovieInstances(instances) {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        var overseerr = {
+            ...state.movies.overseerr,
+            instances: instances,
+        };
+
+        dispatch(setOverseerrClient({
+            overseerr: overseerr
+        }));
+
+        return new Promise((resolve) => resolve({ ok: true }));
     };
 };
 
@@ -250,6 +273,16 @@ export function saveOverseerrMovieClient(saveModel) {
             Categories: state.movies.overseerr.categories
         }
 
+        const instances = (saveModel.overseerr.instances || []).map(i => ({
+            InstanceId: Number(i.instanceId),
+            Name: i.name || '',
+            Hostname: i.hostname || '',
+            Port: Number(i.port) || 5055,
+            UseSSL: !!i.useSSL,
+            ApiKey: i.apiKey || '',
+            Version: i.version || '1',
+        }));
+
         return fetch("../api/movies/overseerr", {
             method: 'POST',
             headers: {
@@ -266,6 +299,7 @@ export function saveOverseerrMovieClient(saveModel) {
                 'UseMovieIssue': saveModel.overseerr.useMovieIssue,
                 'UseTVIssue': saveModel.overseerr.useTVIssue,
                 'Version': saveModel.overseerr.version,
+                'Instances': instances,
             })
         })
             .then(data => data.json())

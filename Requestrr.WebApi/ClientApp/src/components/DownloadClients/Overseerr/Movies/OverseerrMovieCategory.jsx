@@ -291,6 +291,19 @@ function OverseerrMovieCategory(props) {
                     </label>
                   </FormGroup>
                 </Col>
+                <Col lg="6">
+                  <Dropdown
+                    name="Overseerr / Jellyseerr Instance"
+                    value={Number(props.category.instanceId || 0)}
+                    items={[
+                      { name: "Default (primary connection)", value: 0 },
+                      ...((reduxState.overseerr.instances || []).map(i => ({
+                        name: `${i.name || ("Instance " + i.instanceId)} — ${i.hostname || "(no host)"}`,
+                        value: Number(i.instanceId),
+                      })))
+                    ]}
+                    onChange={newInstanceId => setCategory("instanceId", newInstanceId)} />
+                </Col>
               </Row>
               <Row>
                 <Col lg="12" className="text-right">

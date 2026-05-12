@@ -92,6 +92,9 @@ export function setOverseerrTvShowCategory(categoryId, field, data) {
                 else if (field === "is4K") {
                     category.is4K = data;
                 }
+                else if (field === "instanceId") {
+                    category.instanceId = Number(data) || 0;
+                }
 
                 categories[index] = category;
             }
@@ -144,6 +147,9 @@ export function setOverseerrTvShowConnectionSettings(connectionSettings) {
             useMovieIssue: connectionSettings.useMovieIssue,
             useTVIssue: connectionSettings.useTVIssue,
             version: connectionSettings.version,
+            instances: connectionSettings.instances !== undefined
+                ? connectionSettings.instances
+                : (state.tvShows.overseerr.instances || []),
         };
 
         dispatch(setOverseerrClient({
@@ -153,6 +159,23 @@ export function setOverseerrTvShowConnectionSettings(connectionSettings) {
         return new Promise((resolve, reject) => {
             return { ok: false };
         });
+    };
+};
+
+export function setOverseerrTvShowInstances(instances) {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        var overseerr = {
+            ...state.tvShows.overseerr,
+            instances: instances,
+        };
+
+        dispatch(setOverseerrClient({
+            overseerr: overseerr
+        }));
+
+        return new Promise((resolve) => resolve({ ok: true }));
     };
 };
 
@@ -253,6 +276,16 @@ export function saveOverseerrTvShowClient(saveModel) {
             Categories: state.tvShows.overseerr.categories
         }
 
+        const instances = (saveModel.overseerr.instances || []).map(i => ({
+            InstanceId: Number(i.instanceId),
+            Name: i.name || '',
+            Hostname: i.hostname || '',
+            Port: Number(i.port) || 5055,
+            UseSSL: !!i.useSSL,
+            ApiKey: i.apiKey || '',
+            Version: i.version || '1',
+        }));
+
         return fetch("../api/tvShows/overseerr", {
             method: 'POST',
             headers: {
@@ -270,6 +303,7 @@ export function saveOverseerrTvShowClient(saveModel) {
                 "UseMovieIssue": saveModel.overseerr.useMovieIssue,
                 "UseTVIssue": saveModel.overseerr.useTVIssue,
                 'Version': saveModel.overseerr.version,
+                'Instances': instances,
             })
         })
             .then(data => data.json())

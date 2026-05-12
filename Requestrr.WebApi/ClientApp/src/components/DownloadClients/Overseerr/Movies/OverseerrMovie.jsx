@@ -5,9 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from "reactstrap";
 import { testOverseerrMovieSettings as testSettings } from "../../../../store/actions/OverseerrClientRadarrActions"
 import { setOverseerrMovieConnectionSettings as setConnectionSettings } from "../../../../store/actions/OverseerrClientRadarrActions"
+import { setOverseerrMovieInstances as setInstancesAction } from "../../../../store/actions/OverseerrClientRadarrActions"
 import ValidatedTextbox from "../../../Inputs/ValidatedTextbox"
 import Dropdown from "../../../Inputs/Dropdown"
 import OverseerrMovieCategoryList from "./OverseerrMovieCategoryList"
+import OverseerrInstancesEditor from "../OverseerrInstancesEditor"
 
 import {
   FormGroup,
@@ -34,6 +36,7 @@ function OverseerrMovie(props) {
   const [useMovieIssue, setUseMovieIssue] = useState("");
   const [apiVersion, setApiVersion] = useState("");
   const [isValid, setIsValid] = useState(false);
+  const [instances, setInstances] = useState([]);
 
   const reduxState = useSelector((state) => {
     return {
@@ -51,7 +54,7 @@ function OverseerrMovie(props) {
 
   useEffect(() => {
     onValueChange();
-  }, [apiVersion, apiKey, hostname, port, defaultApiUserID, useSSL, useMovieIssue]);
+  }, [apiVersion, apiKey, hostname, port, defaultApiUserID, useSSL, useMovieIssue, instances]);
 
 
 
@@ -85,6 +88,7 @@ function OverseerrMovie(props) {
     setUseSSL(reduxState.settings.useSSL);
     setUseMovieIssue(reduxState.settings.useMovieIssue);
     setApiVersion(reduxState.settings.version);
+    setInstances(reduxState.settings.instances || []);
     setIsValid(false);
   };
 
@@ -143,6 +147,7 @@ function OverseerrMovie(props) {
       useSSL: useSSL,
       useMovieIssue: useMovieIssue,
       version: apiVersion,
+      instances: instances,
     }));
 
     props.onChange({
@@ -153,9 +158,15 @@ function OverseerrMovie(props) {
       useSSL: useSSL,
       useMovieIssue: useMovieIssue,
       version: apiVersion,
+      instances: instances,
     });
 
     onValidate();
+  };
+
+  const onInstancesChange = (newInstances) => {
+    setInstances(newInstances);
+    dispatch(setInstancesAction(newInstances));
   };
 
   const onValidate = () => {
@@ -330,6 +341,11 @@ function OverseerrMovie(props) {
           </Col>
         </Row>
       </div>
+      <OverseerrInstancesEditor
+        instances={instances}
+        kind="movies"
+        onChange={onInstancesChange}
+      />
       <OverseerrMovieCategoryList isSubmitted={props.isSubmitted} isSaving={props.isSaving} apiVersion={apiVersion} canConnect={isHostnameValid && isPortValid && isApiKeyValid} />
 
       <h6 className="heading-small text-muted">

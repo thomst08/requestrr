@@ -1,0 +1,443 @@
+// CRIOS Theme overrides
+// Dark, modern look that matches the CRIOS media platform branding
+// (companion to followarr / crios-watchlist and plex-patreon)
+
+// Core palette
+$crios-bg:           #0a0e1a;
+$crios-bg-elev-1:    #131826;
+$crios-bg-elev-2:    #1a2138;
+$crios-bg-elev-3:    #232a44;
+$crios-border:       #2a3252;
+$crios-text:         #e6e9f0;
+$crios-text-muted:   #8c93a8;
+$crios-text-dim:     #5a6280;
+
+$crios-cyan:         #00d4ff;
+$crios-cyan-dark:    #0099cc;
+$crios-cyan-glow:    rgba(0, 212, 255, 0.4);
+$crios-magenta:      #ff3b9a;
+$crios-magenta-dark: #c70066;
+$crios-violet:       #7c4dff;
+
+$crios-success:      #00e676;
+$crios-warning:      #ffb300;
+$crios-danger:       #ff5b5b;
+$crios-info:         $crios-cyan;
+
+// ---------------------------------------------------------------------------
+// Global background + body
+// ---------------------------------------------------------------------------
+
+body,
+body.bg-default {
+  background-color: $crios-bg !important;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(124, 77, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 212, 255, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(255, 59, 154, 0.06) 0px, transparent 50%) !important;
+  background-attachment: fixed !important;
+  color: $crios-text;
+}
+
+.main-content {
+  background-color: transparent;
+}
+
+// ---------------------------------------------------------------------------
+// Auth (login / register) header gradient + svg fill
+// ---------------------------------------------------------------------------
+
+.header.bg-gradient-info {
+  background: linear-gradient(135deg, $crios-violet 0%, $crios-cyan 50%, $crios-magenta 100%) !important;
+}
+
+.fill-default {
+  fill: $crios-bg !important;
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+
+.navbar-vertical.navbar-light.bg-white,
+.navbar-vertical.navbar-light {
+  background-color: $crios-bg-elev-1 !important;
+  border-right: 1px solid $crios-border;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+
+  .navbar-brand {
+    img {
+      filter: brightness(0) invert(1);
+    }
+
+    &::after {
+      content: "CRIOS";
+      display: block;
+      color: $crios-cyan;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      font-size: 0.65rem;
+      margin-top: 0.25rem;
+      text-shadow: 0 0 8px $crios-cyan-glow;
+    }
+  }
+
+  .nav-link {
+    color: $crios-text-muted !important;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    margin: 2px 0;
+
+    &:hover {
+      color: $crios-cyan !important;
+      background-color: rgba(0, 212, 255, 0.05);
+      border-left-color: $crios-cyan;
+    }
+
+    &.active {
+      color: $crios-cyan !important;
+      background-color: rgba(0, 212, 255, 0.08);
+      border-left-color: $crios-cyan;
+      text-shadow: 0 0 8px $crios-cyan-glow;
+    }
+
+    i {
+      color: inherit !important;
+    }
+  }
+
+  .navbar-heading {
+    color: $crios-text-dim !important;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+  }
+
+  hr {
+    border-color: $crios-border !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cards
+// ---------------------------------------------------------------------------
+
+.card {
+  background-color: $crios-bg-elev-1 !important;
+  border: 1px solid $crios-border !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 212, 255, 0.05) !important;
+  color: $crios-text;
+
+  &.bg-secondary,
+  &.bg-white {
+    background-color: $crios-bg-elev-1 !important;
+  }
+}
+
+.card-header,
+.card-header.bg-white,
+.card-header.bg-transparent {
+  background-color: $crios-bg-elev-2 !important;
+  border-bottom: 1px solid $crios-border !important;
+  color: $crios-text;
+
+  h3, h4, h5, h6, .heading {
+    color: $crios-text !important;
+  }
+}
+
+.card-body {
+  color: $crios-text;
+}
+
+// ---------------------------------------------------------------------------
+// Forms / inputs
+// ---------------------------------------------------------------------------
+
+.form-control,
+.input-group-text,
+.input-group-alternative .form-control,
+.input-group-alternative .input-group-text {
+  background-color: $crios-bg-elev-2 !important;
+  border-color: $crios-border !important;
+  color: $crios-text !important;
+
+  &::placeholder {
+    color: $crios-text-dim !important;
+  }
+
+  &:focus {
+    background-color: $crios-bg-elev-3 !important;
+    border-color: $crios-cyan !important;
+    box-shadow: 0 0 0 2px $crios-cyan-glow !important;
+    color: $crios-text !important;
+  }
+}
+
+.input-group-alternative {
+  background-color: $crios-bg-elev-2 !important;
+  border: 1px solid $crios-border !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+  &:focus-within {
+    border-color: $crios-cyan !important;
+    box-shadow: 0 0 0 2px $crios-cyan-glow !important;
+  }
+}
+
+label,
+.form-control-label {
+  color: $crios-text-muted !important;
+}
+
+.heading-small,
+.heading {
+  color: $crios-cyan !important;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+// ---------------------------------------------------------------------------
+// Buttons
+// ---------------------------------------------------------------------------
+
+.btn-primary {
+  background: linear-gradient(135deg, $crios-cyan 0%, $crios-violet 100%) !important;
+  border: none !important;
+  color: $crios-bg !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+
+  &:hover, &:focus, &:active {
+    background: linear-gradient(135deg, lighten($crios-cyan, 5%) 0%, lighten($crios-violet, 5%) 100%) !important;
+    color: $crios-bg !important;
+    box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-default,
+.btn-secondary {
+  background-color: $crios-bg-elev-3 !important;
+  border-color: $crios-border !important;
+  color: $crios-text !important;
+
+  &:hover {
+    background-color: lighten($crios-bg-elev-3, 5%) !important;
+    border-color: $crios-cyan !important;
+    color: $crios-cyan !important;
+  }
+}
+
+.btn-danger {
+  background-color: $crios-danger !important;
+  border-color: $crios-danger !important;
+
+  &:hover {
+    background-color: darken($crios-danger, 8%) !important;
+    border-color: darken($crios-danger, 8%) !important;
+  }
+}
+
+.btn-success {
+  background-color: $crios-success !important;
+  border-color: $crios-success !important;
+  color: $crios-bg !important;
+}
+
+.btn-warning {
+  background-color: $crios-warning !important;
+  border-color: $crios-warning !important;
+  color: $crios-bg !important;
+}
+
+.btn-info {
+  background-color: $crios-cyan !important;
+  border-color: $crios-cyan !important;
+  color: $crios-bg !important;
+}
+
+// ---------------------------------------------------------------------------
+// Alerts
+// ---------------------------------------------------------------------------
+
+.alert-success {
+  background-color: rgba(0, 230, 118, 0.12) !important;
+  color: $crios-success !important;
+  border-color: rgba(0, 230, 118, 0.3) !important;
+}
+
+.alert-danger {
+  background-color: rgba(255, 91, 91, 0.12) !important;
+  color: $crios-danger !important;
+  border-color: rgba(255, 91, 91, 0.3) !important;
+}
+
+.alert-warning {
+  background-color: rgba(255, 179, 0, 0.12) !important;
+  color: $crios-warning !important;
+  border-color: rgba(255, 179, 0, 0.3) !important;
+}
+
+.alert-info {
+  background-color: rgba(0, 212, 255, 0.12) !important;
+  color: $crios-cyan !important;
+  border-color: rgba(0, 212, 255, 0.3) !important;
+}
+
+// ---------------------------------------------------------------------------
+// Text helpers
+// ---------------------------------------------------------------------------
+
+.text-muted {
+  color: $crios-text-muted !important;
+}
+
+.text-default {
+  color: $crios-text !important;
+}
+
+.text-primary {
+  color: $crios-cyan !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: $crios-text;
+}
+
+a:not(.btn):not(.nav-link):not(.navbar-brand) {
+  color: $crios-cyan;
+
+  &:hover {
+    color: lighten($crios-cyan, 10%);
+    text-shadow: 0 0 6px $crios-cyan-glow;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Dropdowns
+// ---------------------------------------------------------------------------
+
+.dropdown-menu {
+  background-color: $crios-bg-elev-2 !important;
+  border: 1px solid $crios-border !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.dropdown-item {
+  color: $crios-text !important;
+
+  &:hover, &:focus {
+    background-color: rgba(0, 212, 255, 0.08) !important;
+    color: $crios-cyan !important;
+  }
+}
+
+.react-dropdown-select {
+  background-color: $crios-bg-elev-2 !important;
+  border: 1px solid $crios-border !important;
+  color: $crios-text !important;
+
+  &:hover, &:focus, &:focus-within {
+    border-color: $crios-cyan !important;
+    box-shadow: 0 0 0 2px $crios-cyan-glow !important;
+  }
+}
+
+.react-dropdown-select-dropdown {
+  background-color: $crios-bg-elev-2 !important;
+  border: 1px solid $crios-border !important;
+}
+
+.react-dropdown-select-item {
+  color: $crios-text !important;
+  border-color: $crios-border !important;
+
+  &:hover {
+    background-color: rgba(0, 212, 255, 0.08) !important;
+    color: $crios-cyan !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tables
+// ---------------------------------------------------------------------------
+
+.table {
+  color: $crios-text;
+
+  thead th {
+    background-color: $crios-bg-elev-2 !important;
+    color: $crios-text-muted !important;
+    border-color: $crios-border !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  tbody tr {
+    background-color: transparent;
+
+    &:hover {
+      background-color: rgba(0, 212, 255, 0.04);
+    }
+  }
+
+  td {
+    border-color: $crios-border !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Custom checkbox alternative
+// ---------------------------------------------------------------------------
+
+.custom-control-alternative .custom-control-label::before {
+  background-color: $crios-bg-elev-2 !important;
+  border-color: $crios-border !important;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: $crios-cyan !important;
+  border-color: $crios-cyan !important;
+  box-shadow: 0 0 8px $crios-cyan-glow;
+}
+
+// ---------------------------------------------------------------------------
+// Misc
+// ---------------------------------------------------------------------------
+
+.bg-secondary {
+  background-color: $crios-bg-elev-1 !important;
+}
+
+hr {
+  border-color: $crios-border !important;
+}
+
+code {
+  background-color: $crios-bg-elev-3;
+  color: $crios-cyan;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.shadow {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+// CRIOS badge style for special highlights
+.crios-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, $crios-cyan 0%, $crios-magenta 100%);
+  color: $crios-bg;
+  border-radius: 3px;
+  box-shadow: 0 0 12px $crios-cyan-glow;
+}

@@ -229,6 +229,22 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             settings.DownloadClients.Overseerr.ApiKey = overseerrSettings.ApiKey;
             settings.DownloadClients.Overseerr.UseSSL = overseerrSettings.UseSSL;
             settings.DownloadClients.Overseerr.Version = overseerrSettings.Version;
+
+            var instances = (overseerrSettings.Instances ?? Array.Empty<OverseerrInstanceModel>())
+                .Where(i => i != null && i.InstanceId > 0)
+                .Select(i => new OverseerrInstance
+                {
+                    InstanceId = i.InstanceId,
+                    Name = i.Name ?? string.Empty,
+                    Hostname = i.Hostname ?? string.Empty,
+                    Port = i.Port,
+                    UseSSL = i.UseSSL,
+                    ApiKey = i.ApiKey ?? string.Empty,
+                    Version = string.IsNullOrEmpty(i.Version) ? "1" : i.Version,
+                })
+                .ToArray();
+
+            settings.DownloadClients.Overseerr.Instances = JToken.FromObject(instances);
         }
 
         private static void SetTvShowSettings(TvShowsSettings tvSettings, dynamic settings) 

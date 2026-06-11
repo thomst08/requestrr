@@ -91,6 +91,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             return Ok(new MusicSettingsModel
             {
                 Client = _musicSettings.Client,
+                Restrictions = _musicSettings.Restrictions,
                 Lidarr = new LidarrSettingsModel
                 {
                     Hostname = _downloadClientsSettings.Lidarr.Hostname,
@@ -104,11 +105,16 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                         ProfileId = x.ProfileId,
                         MetadataProfileId = x.MetadataProfileId,
                         RootFolder = x.RootFolder,
-                        Tags = x.Tags
+                        Tags = x.Tags,
+                        ReleaseTypes = x.ReleaseTypes,
+                        PrimaryTypes = x.PrimaryTypes,
+                        SecondaryTypes = x.SecondaryTypes,
+                        ReleaseStatuses = x.ReleaseStatuses
                     }).ToArray(),
                     UseSSL = _downloadClientsSettings.Lidarr.UseSSL,
                     SearchNewRequests = _downloadClientsSettings.Lidarr.SearchNewRequests,
                     MonitorNewRequests = _downloadClientsSettings.Lidarr.MonitorNewRequests,
+                    AllowBulkAlbumRequests = _downloadClientsSettings.Lidarr.AllowBulkAlbumRequests,
                     Version = _downloadClientsSettings.Lidarr.Version
                 },
                 OtherCategories = otherCategories.ToArray()

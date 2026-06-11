@@ -6,13 +6,25 @@ export default function MusicClientsReducer(state = {}, action) {
         return {
             ...state,
             client: action.payload.client,
+            restrictions: action.payload.restrictions || "None",
             lidarr: {
                 hostname: action.payload.lidarr.hostname,
                 baseUrl: action.payload.lidarr.baseUrl,
                 port: action.payload.lidarr.port,
                 apiKey: action.payload.lidarr.apiKey,
                 useSSL: action.payload.lidarr.useSSL,
-                categories: action.payload.lidarr.categories,
+                categories: action.payload.lidarr.categories.map(x => ({
+                    ...x,
+                    primaryTypes: x.primaryTypes && x.primaryTypes.length > 0
+                        ? x.primaryTypes
+                        : (x.releaseTypes && x.releaseTypes.length > 0 ? x.releaseTypes : ["Album", "EP", "Single"]),
+                    secondaryTypes: x.secondaryTypes && x.secondaryTypes.length > 0
+                        ? x.secondaryTypes
+                        : ["Studio", "Soundtrack", "Remix", "DJ-mix", "Compilation"],
+                    releaseStatuses: x.releaseStatuses && x.releaseStatuses.length > 0
+                        ? x.releaseStatuses
+                        : ["Official"]
+                })),
                 searchNewRequests: action.payload.lidarr.searchNewRequests,
                 monitorNewRequests: action.payload.lidarr.monitorNewRequests,
                 version: action.payload.lidarr.version,

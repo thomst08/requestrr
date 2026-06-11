@@ -6,6 +6,7 @@ import { getSettings } from "../store/actions/MusicClientsActions";
 import { saveDisabledClient } from "../store/actions/MusicClientsActions"
 import { saveLidarrClient } from "../store/actions/LidarrClientActions";
 import Dropdown from "../components/Inputs/Dropdown"
+import MultiDropdown from "../components/Inputs/MultiDropdown"
 import Lidarr from "../components/DownloadClients/Lidarr/Lidarr";
 
 // reactstrap components
@@ -23,6 +24,8 @@ import {
 // core components
 import UserHeader from "../components/Headers/UserHeader.jsx";
 
+const RELEASE_TYPE_ORDER = ["Album", "EP", "Single", "Broadcast", "Other"];
+
 
 function Music(props) {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -32,6 +35,7 @@ function Music(props) {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [client, setClient] = useState("");
+  const [restrictions, setRestrictions] = useState("None");
   const [lidarr, setLidarr] = useState({});
   const [isLidarrValid, setIsLidarrValid] = useState(false);
 
@@ -49,6 +53,7 @@ function Music(props) {
       .then(data => {
         setIsLoading(false);
         setClient(data.payload.client);
+        setRestrictions(data.payload.restrictions || "None");
         setLidarr(data.payload.lidarr);
       });
   }, []);
@@ -72,6 +77,7 @@ function Music(props) {
         } else if (client === "Lidarr") {
           saveAction = dispatch(saveLidarrClient({
             lidarr: lidarr,
+            restrictions: restrictions
           }));
         }
 
@@ -106,6 +112,7 @@ function Music(props) {
 
   const onClientChange = () => {
     setLidarr(reduxState.settings.lidarr);
+    setRestrictions(reduxState.settings.restrictions || "None");
 
     setSaveAttempted(false);
     setIsSubmitted(false);
@@ -114,6 +121,59 @@ function Music(props) {
   const onSaving = (e) => {
     e.preventDefault();
     setIsSubmitted(true);
+  }
+
+  const getRestrictionItems = () => {
+    const categories = reduxState?.settings?.lidarr?.categories || [];
+    const availableTypes = [...new Set(categories
+      .flatMap(x => x.primaryTypes || [])
+      .filter(x => typeof x === "string" && x.trim().length > 0))];
+
+    const sortedTypes = availableTypes.sort((a, b) => {
+      const left = RELEASE_TYPE_ORDER.indexOf(a);
+      const right = RELEASE_TYPE_ORDER.indexOf(b);
+      const leftOrder = left === -1 ? 999 : left;
+      const rightOrder = right === -1 ? 999 : right;
+
+      if (leftOrder !== rightOrder)
+        return leftOrder - rightOrder;
+
+      return a.localeCompare(b);
+    });
+
+    return sortedTypes.map(type => ({
+      id: `Single:${type}`,
+      name: `Force single ${type.toLowerCase()}`
+    }));
+  }
+
+  const normalizeLegacyRestriction = (value) => {
+    if (value === "SingleAlbum") return "Single:Album";
+    if (value === "SingleEP") return "Single:EP";
+    if (value === "SingleSingle") return "Single:Single";
+    return value;
+  }
+
+  const getSelectedRestrictions = () => {
+    if (!restrictions || restrictions === "None")
+      return [];
+
+    const selectedIds = restrictions
+      .split(",")
+      .map(x => normalizeLegacyRestriction(x.trim()))
+      .filter(x => x.length > 0);
+
+    return getRestrictionItems().filter(x => selectedIds.includes(x.id));
+  }
+
+  const onRestrictionsChanged = (values) => {
+    const ids = (values || []).map(x => x.id);
+    if (ids.length === 0) {
+      setRestrictions("None");
+      return;
+    }
+
+    setRestrictions(ids.map(normalizeLegacyRestriction).join(","));
   }
 
 
@@ -158,6 +218,18 @@ function Music(props) {
                           onChange={newClient => { setClient(newClient); onClientChange(); }}
                         />
                       </Col>
+                      {
+                        client !== "Disabled"
+                          ? <Col lg="6">
+                            <MultiDropdown
+                              name="Request Restrictions"
+                              placeholder="Select restriction(s)"
+                              selectedItems={getSelectedRestrictions()}
+                              items={getRestrictionItems()}
+                              onChange={onRestrictionsChanged} />
+                          </Col>
+                          : null
+                      }
                     </Row>
                     <Row>
                       <Col lg="6">

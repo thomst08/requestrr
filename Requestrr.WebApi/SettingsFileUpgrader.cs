@@ -8,6 +8,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
+using Requestrr.WebApi.RequestrrBot.Music;
 
 namespace Requestrr.WebApi
 {
@@ -280,22 +281,42 @@ namespace Requestrr.WebApi
                             MetadataProfileId = 1,
                             RootFolder = string.Empty,
                             Tags = Array.Empty<int>(),
+                            ReleaseTypes = new[] { "Album" },
+                            PrimaryTypes = new[] { "Album", "EP", "Single" },
+                            SecondaryTypes = new[] { "Studio", "Soundtrack", "Remix", "DJ-mix", "Compilation" },
+                            ReleaseStatuses = new[] { "Official" }
                         }
                     },
                     SearchNewRequests = true,
                     MonitorNewRequests = true,
+                    AllowBulkAlbumRequests = true,
                     UseSSL = false,
                     Version = "1"
                 };
 
                 var musicClient = new
                 {
-                    Client = "Disabled"
+                    Client = "Disabled",
+                    Restrictions = MusicRestrictions.None
                 };
 
                 ((JObject)settingsJson["DownloadClients"]).Add("Lidarr", JToken.FromObject(lidarrBlankSettings));
                 ((JObject)settingsJson).Add("Music", JToken.FromObject(musicClient));
                 ((JObject)settingsJson.ChatClients.Discord).Add("MusicRoles", JToken.FromObject(new List<string>()));
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
+
+            var lidarrSettingsJson = settingsJson["DownloadClients"]?["Lidarr"] as JObject;
+            if (lidarrSettingsJson != null && !lidarrSettingsJson.TryGetValue("AllowBulkAlbumRequests", StringComparison.InvariantCultureIgnoreCase, out _))
+            {
+                lidarrSettingsJson.Add("AllowBulkAlbumRequests", true);
+                File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
+            }
+
+            var musicSettingsJson = settingsJson["Music"] as JObject;
+            if (musicSettingsJson != null && !musicSettingsJson.TryGetValue("Restrictions", StringComparison.InvariantCultureIgnoreCase, out _))
+            {
+                musicSettingsJson.Add("Restrictions", MusicRestrictions.None);
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
         }

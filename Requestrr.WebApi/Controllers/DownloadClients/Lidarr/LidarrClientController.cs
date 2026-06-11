@@ -160,7 +160,8 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Lidarr
         {
             MusicSettings musicSettings = new MusicSettings
             {
-                Client = DownloadClient.Lidarr
+                Client = DownloadClient.Lidarr,
+                Restrictions = string.IsNullOrWhiteSpace(model.Restrictions) ? MusicRestrictions.None : model.Restrictions
             };
 
             if (!model.Categories.Any())
@@ -183,6 +184,28 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Lidarr
             if (model.Categories.Any(x => !Regex.IsMatch(x.Name, @"^[\w-]{1,32}$")))
                 return BadRequest("Invalid categorie names, make sure they only contain alphanumeric characters, dashes and underscores. (No spaces, etc)");
 
+            IList<LidarrClient.JSONMetadataProfile> metadataProfiles;
+            try
+            {
+                metadataProfiles = await LidarrClient.GetMetadataProfilesDetailed(
+                    _httpClientFactory.CreateClient(),
+                    _logger,
+                    ConvertToLidarrSettings(model));
+            }
+            catch (Exception)
+            {
+                return BadRequest("Could not load metadata profile details from Lidarr, check your settings.");
+            }
+
+            try
+            {
+                LidarrMetadataProfileMapper.ApplyProfileFiltersToCategories(model.Categories, metadataProfiles);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
             LidarrSettingsModel lidarrSettings = new LidarrSettingsModel
             {
                 Hostname = model.Hostname.Trim(),
@@ -192,6 +215,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Lidarr
                 Categories = model.Categories,
                 SearchNewRequests = model.SearchNewRequests,
                 MonitorNewRequests = model.MonitorNewRequests,
+                AllowBulkAlbumRequests = model.AllowBulkAlbumRequests,
                 UseSSL = model.UseSSL,
                 Version = model.Version
             };

@@ -12,6 +12,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
         public LidarrCategory[] Categories { get; set; } = Array.Empty<LidarrCategory>();
         public bool SearchNewRequests { get; set; }
         public bool MonitorNewRequests { get; set; }
+        public bool AllowBulkAlbumRequests { get; set; } = true;
         public bool UseSSL { get; set; }
         public string Version { get; set; }
     }
@@ -24,5 +25,10 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
         public int MetadataProfileId { get; set; }
         public string RootFolder { get; set; }
         public int[] Tags { get; set; } = Array.Empty<int>();
+        // Legacy field kept for backward compatibility with older settings files.
+        public string[] ReleaseTypes { get; set; } = Array.Empty<string>();
+        public string[] PrimaryTypes { get; set; } = Array.Empty<string>();
+        public string[] SecondaryTypes { get; set; } = Array.Empty<string>();
+        public string[] ReleaseStatuses { get; set; } = Array.Empty<string>();
     }
 }

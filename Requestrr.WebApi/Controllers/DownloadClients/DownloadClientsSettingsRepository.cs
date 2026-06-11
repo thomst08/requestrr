@@ -119,11 +119,16 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     ProfileId = x.ProfileId,
                     MetadataProfileId = x.MetadataProfileId,
                     RootFolder = x.RootFolder,
-                    Tags = x.Tags
+                    Tags = x.Tags,
+                    ReleaseTypes = x.ReleaseTypes,
+                    PrimaryTypes = x.PrimaryTypes,
+                    SecondaryTypes = x.SecondaryTypes,
+                    ReleaseStatuses = x.ReleaseStatuses
                 }).ToArray());
 
                 settings.DownloadClients.Lidarr.SearchNewRequests = lidarrSettings.SearchNewRequests;
                 settings.DownloadClients.Lidarr.MonitorNewRequests = lidarrSettings.MonitorNewRequests;
+                settings.DownloadClients.Lidarr.AllowBulkAlbumRequests = lidarrSettings.AllowBulkAlbumRequests;
 
                 settings.DownloadClients.Lidarr.UseSSL = lidarrSettings.UseSSL;
                 settings.DownloadClients.Lidarr.Version = lidarrSettings.Version;
@@ -266,6 +271,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
             }
 
             settings.Music.Client = musicSettings.Client;
+            settings.Music.Restrictions = musicSettings.Restrictions;
         }
     }
 }

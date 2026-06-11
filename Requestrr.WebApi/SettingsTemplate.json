@@ -34,11 +34,27 @@
           "ProfileId": "1",
           "MetadataProfileId": "1",
           "RootFolder": "",
-          "Tags": []
+          "Tags": [],
+          "PrimaryTypes": [
+            "Album",
+            "EP",
+            "Single"
+          ],
+          "SecondaryTypes": [
+            "Studio",
+            "Soundtrack",
+            "Remix",
+            "DJ-mix",
+            "Compilation"
+          ],
+          "ReleaseStatuses": [
+            "Official"
+          ]
         }
       ],
       "SearchNewRequests": true,
       "MonitorNewRequests": true,
+      "AllowBulkAlbumRequests": true,
       "UseSSL": false,
       "Version": "1"
     },
@@ -120,7 +136,8 @@
     "Client": "Disabled"
   },
   "Music": {
-    "Client": "Disabled"
+    "Client": "Disabled",
+    "Restrictions": "None"
   },
   "TvShows": {
     "Client": "Disabled",

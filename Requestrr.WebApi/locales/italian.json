@@ -132,5 +132,12 @@
   "Discord.Command.Tv.Issue.Tvdb.Name": "tv-tvdb",
   "Discord.Command.Tv.Issue.Tvdb.Description": "Segnala un problema con la serie televisiva tramite l'id tvdb",
   "Discord.Command.Tv.Issue.Tvdb.Option.Name": "id",
-  "Discord.Command.Tv.Issue.Tvdb.Option.Description": "l'id tvdb del programma tv"
+  "Discord.Command.Tv.Issue.Tvdb.Option.Description": "l'id tvdb del programma tv",
+  "Discord.Command.Music.Album.Request.Help.Dropdown": "Seleziona un album qui",
+  "Discord.Command.Music.Album.Request.Confirm": "Se desideri richiedere **[MusicAlbumName]** di **[MusicArtistName]**, fai clic sul pulsante di richiesta direttamente sotto questo messaggio.",
+  "Discord.Command.Music.Album.AlreadyAvailable": "Questo album **[MusicAlbumName]** di **[MusicArtistName]** è già disponibile, buon ascolto!",
+  "Discord.Command.Music.Album.Request.AlreadyExist": "Questo album **[MusicAlbumName]** di **[MusicArtistName]** è già stato richiesto.",
+  "Discord.Command.Music.Album.Request.Success": "La tua richiesta per **[MusicAlbumName]** di **[MusicArtistName]** è stata inviata con successo!",
+  "Discord.Command.Music.Album.Request.Denied": "La tua richiesta per **[MusicAlbumName]** è stata rifiutata dal provider a causa di autorizzazioni insufficienti o limiti di quota.",
+  "Discord.Command.Music.Album.Option.All": "Tutti gli album"
 }

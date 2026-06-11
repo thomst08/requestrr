@@ -61,6 +61,25 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
             return replaced;
         }
 
+        public static string ReplaceTokens(this string text, MusicAlbum album, MusicArtist artist = null, Dictionary<string, string> additionalTokenReplacements = null)
+        {
+            Dictionary<string, string> musicReplacementTokens = new Dictionary<string, string>
+            {
+                { LanguageTokens.MusicAlbumName, album.AlbumTitle }
+            };
+
+            if (artist != null)
+            {
+                musicReplacementTokens.Add(LanguageTokens.MusicArtistName, artist.ArtistName);
+            }
+
+            string replaced = ReplaceTokens(text, musicReplacementTokens);
+            if (additionalTokenReplacements != null)
+                replaced = ReplaceTokens(text, additionalTokenReplacements);
+
+            return replaced;
+        }
+
         public static string ReplaceTokens(this string text, string token, string value)
         {
             return text.Replace(token, value);

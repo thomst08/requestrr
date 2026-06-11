@@ -77,6 +77,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
             return LidarrClientV1.GetMetadataProfiles(httpClient, logger, settings);
         }
 
+        public static Task<IList<JSONMetadataProfile>> GetMetadataProfilesDetailed(HttpClient httpClient, ILogger<LidarrClient> logger, LidarrSettings settings)
+        {
+            return LidarrClientV1.GetMetadataProfilesDetailed(httpClient, logger, settings);
+        }
+
 
 
 
@@ -109,6 +114,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
             return CreateInstance<IMusicSearcher>().SearchMusicForArtistAsync(request, artistName);
         }
 
+        public Task<IReadOnlyList<MusicAlbum>> SearchMusicAlbumsForArtistAsync(MusicRequest request, MusicArtist artist)
+        {
+            return CreateInstance<IMusicSearcher>().SearchMusicAlbumsForArtistAsync(request, artist);
+        }
+
 
         //-----------------------------
 
@@ -127,6 +137,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
         public Task<MusicRequestResult> RequestMusicAsync(MusicRequest request, MusicArtist music)
         {
             return CreateInstance<IMusicRequester>().RequestMusicAsync(request, music);
+        }
+
+        public Task<MusicRequestResult> RequestMusicAlbumAsync(MusicRequest request, MusicArtist artist, MusicAlbum album)
+        {
+            return CreateInstance<IMusicRequester>().RequestMusicAlbumAsync(request, artist, album);
         }
 
 
@@ -155,6 +170,15 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
         {
             public string label { get; set; }
             public int id { get; set; }
+        }
+
+        public class JSONMetadataProfile
+        {
+            public int id { get; set; }
+            public string name { get; set; }
+            public string[] primaryTypes { get; set; } = Array.Empty<string>();
+            public string[] secondaryTypes { get; set; } = Array.Empty<string>();
+            public string[] releaseStatuses { get; set; } = Array.Empty<string>();
         }
     }
 }

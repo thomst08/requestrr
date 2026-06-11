@@ -172,6 +172,12 @@ export function setLidarrCategory(categoryId, field, data) {
                     category.rootFolder = data;
                 } else if (field === "tags") {
                     category.tags = state.music.lidarr.tags.map(x => x.id).filter(x => data.includes(x));
+                } else if (field === "primaryTypes") {
+                    category.primaryTypes = ["Album", "Broadcast", "EP", "Other", "Single"].filter(x => data.includes(x));
+                } else if (field === "secondaryTypes") {
+                    category.secondaryTypes = ["Studio", "Spokenword", "Soundtrack", "Remix", "Mixtape/Street", "Live", "Interview", "DJ-mix", "Demo", "Compilation", "Audio drama"].filter(x => data.includes(x));
+                } else if (field === "releaseStatuses") {
+                    category.releaseStatuses = ["Pseudo-Release", "Promotion", "Official", "Bootleg"].filter(x => data.includes(x));
                 }
 
                 categories[index] = category;
@@ -486,7 +492,8 @@ export function saveLidarrClient(saveModel) {
                 'Categories': state.music.lidarr.categories,
                 "Version": saveModel.lidarr.version,
                 'SearchNewRequests': saveModel.lidarr.searchNewRequests,
-                'MonitorNewRequests': saveModel.lidarr.monitorNewRequests
+                'MonitorNewRequests': saveModel.lidarr.monitorNewRequests,
+                'Restrictions': saveModel.restrictions
             })
         })
             .then(data => data.json())

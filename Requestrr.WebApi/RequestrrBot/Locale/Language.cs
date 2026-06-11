@@ -9,6 +9,7 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
         public static string SeasonNumber = "[SeasonNumber]";
         public static string MovieTitle = "[MovieTitle]";
         public static string MusicArtistName = "[MusicArtistName]";
+        public static string MusicAlbumName = "[MusicAlbumName]";
         public static string AuthorUsername = "[AuthorUsername]";
         public static string BotUsername = "[BotUsername]";
         public static string MovieTMDB = "[MovieTMDB]";
@@ -499,5 +500,29 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
         [JsonProperty("Discord.Command.Music.Artist.Notification.Success")]
         public string DiscordCommandMusicArtistNotificationSuccess { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.Help")]
+        public string DiscordCommandMusicAlbumRequestHelp { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.Help.Dropdown")]
+        public string DiscordCommandMusicAlbumRequestHelpDropdown { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.Confirm")]
+        public string DiscordCommandMusicAlbumRequestConfirm { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.AlreadyAvailable")]
+        public string DiscordCommandMusicAlbumAlreadyAvailable { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.AlreadyExist")]
+        public string DiscordCommandMusicAlbumRequestAlreadyExist { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.Success")]
+        public string DiscordCommandMusicAlbumRequestSuccess { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Request.Denied")]
+        public string DiscordCommandMusicAlbumRequestDenied { get; set; }
+
+        [JsonProperty("Discord.Command.Music.Album.Option.All")]
+        public string DiscordCommandMusicAlbumOptionAll { get; set; }
     }
 }

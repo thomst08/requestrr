@@ -8,7 +8,7 @@ RUN npm install
 
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as dotnet-build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build
 
 RUN apt-get update && \
   apt-get --no-install-recommends -y install nodejs npm

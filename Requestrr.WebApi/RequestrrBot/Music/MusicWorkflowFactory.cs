@@ -16,23 +16,27 @@ namespace Requestrr.WebApi.RequestrrBot.Music
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly MusicNotificationsRepository _notificationsRepository;
         private LidarrClient _lidarrClient;
+        private readonly MusicSettingsProvider _musicSettingsProvider;
 
 
         public MusicWorkflowFactory(
             DiscordSettingsProvider settingsProvider,
             MusicNotificationsRepository musicNotificationsRepository,
-            LidarrClient lidarrClient
+            LidarrClient lidarrClient,
+            MusicSettingsProvider musicSettingsProvider
         )
         {
             _settingsProvider = settingsProvider;
             _notificationsRepository = musicNotificationsRepository;
             _lidarrClient = lidarrClient;
+            _musicSettingsProvider = musicSettingsProvider;
         }
 
 
         public MusicRequestingWorkflow CreateRequestingWorkflow(DiscordInteraction interaction, int categoryId)
         {
             DiscordSettings settings = _settingsProvider.Provide();
+            string restrictions = _musicSettingsProvider.Provide().Restrictions;
             return new MusicRequestingWorkflow(
                 new MusicUserRequester(
                     interaction.User.Id.ToString(),
@@ -41,7 +45,8 @@ namespace Requestrr.WebApi.RequestrrBot.Music
                 categoryId,
                 GetMusicClient<IMusicSearcher>(settings),
                 GetMusicClient<IMusicRequester>(settings),
-                new DiscordMusicUserInterface(interaction, GetMusicClient<IMusicSearcher>(settings)),
+                new DiscordMusicUserInterface(interaction, GetMusicClient<IMusicSearcher>(settings), restrictions),
+                restrictions,
                 CreateMusicNotificationWorkflow(interaction, settings)
                 );
         }
@@ -74,7 +79,8 @@ namespace Requestrr.WebApi.RequestrrBot.Music
 
         private IMusicNotificationWorkflow CreateMusicNotificationWorkflow(DiscordInteraction interaction, DiscordSettings settings)
         {
-            DiscordMusicUserInterface userInterface = new DiscordMusicUserInterface(interaction, GetMusicClient<IMusicSearcher>(settings));
+            string restrictions = _musicSettingsProvider.Provide().Restrictions;
+            DiscordMusicUserInterface userInterface = new DiscordMusicUserInterface(interaction, GetMusicClient<IMusicSearcher>(settings), restrictions);
             IMusicNotificationWorkflow musicNotificationWorkflow = new DisabledMusicNotificationWorkflow(userInterface);
 
             if (settings.NotificationMode != NotificationMode.Disabled)

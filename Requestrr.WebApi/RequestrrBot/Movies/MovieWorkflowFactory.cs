@@ -9,6 +9,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Notifications;
 using Requestrr.WebApi.RequestrrBot.Notifications.Movies;
 
@@ -18,6 +19,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
     {
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly MovieNotificationsRepository _notificationsRepository;
+        private readonly IRequestLogger _requestLogger;
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private RadarrClient _radarrDownloadClient;
@@ -27,25 +29,30 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             MovieNotificationsRepository notificationsRepository,
             OverseerrClient overseerrClient,
             OmbiClient ombiDownloadClient,
-            RadarrClient radarrDownloadClient)
+            RadarrClient radarrDownloadClient,
+            IRequestLogger requestLogger)
         {
             _settingsProvider = settingsProvider;
             _notificationsRepository = notificationsRepository;
             _overseerrClient = overseerrClient;
             _ombiDownloadClient = ombiDownloadClient;
             _radarrDownloadClient = radarrDownloadClient;
+            _requestLogger = requestLogger;
         }
 
         public MovieRequestingWorkflow CreateRequestingWorkflow(DiscordInteraction interaction, int categoryId)
         {
             var settings = _settingsProvider.Provide();
+            var categoryName = GetCategoryName(settings, categoryId);
 
             return new MovieRequestingWorkflow(new MovieUserRequester(interaction.User.Id.ToString(),  interaction.User.Username),
                                                 categoryId,
+                                                categoryName,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
                                                 new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
-                                                CreateMovieNotificationWorkflow(interaction, settings));
+                                                CreateMovieNotificationWorkflow(interaction, settings),
+                                                _requestLogger);
         }
 
 
@@ -58,13 +65,16 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         public MovieIssueWorkflow CreateIssueWorkflow(DiscordInteraction interaction, int categoryId)
         {
             var settings = _settingsProvider.Provide();
+            var categoryName = GetCategoryName(settings, categoryId);
 
             return new MovieIssueWorkflow(new MovieUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                                                 categoryId,
+                                                categoryName,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
                                                 new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
-                                                CreateMovieNotificationWorkflow(interaction, settings));
+                                                CreateMovieNotificationWorkflow(interaction, settings),
+                                                _requestLogger);
         }
 
         public IMovieNotificationWorkflow CreateNotificationWorkflow(DiscordInteraction interaction)
@@ -125,6 +135,30 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             else
             {
                 throw new Exception($"Invalid configured movie download client {settings.MovieDownloadClient}");
+            }
+        }
+
+        private string GetCategoryName(DiscordSettings settings, int categoryId)
+        {
+            if (settings.MovieDownloadClient == DownloadClient.Radarr)
+            {
+                var radarrSettings = _radarrDownloadClient.GetSettings();
+                var category = radarrSettings.Categories.FirstOrDefault(c => c.Id == categoryId);
+                return category?.Name ?? $"Category {categoryId}";
+            }
+            else if (settings.MovieDownloadClient == DownloadClient.Ombi)
+            {
+                return "Default"; // Ombi doesn't have multiple categories
+            }
+            else if (settings.MovieDownloadClient == DownloadClient.Overseerr)
+            {
+                var overseerrSettings = _overseerrClient.GetSettings();
+                var category = overseerrSettings.Movies.Categories.FirstOrDefault(c => c.Id == categoryId);
+                return category?.Name ?? $"Category {categoryId}";
+            }
+            else
+            {
+                return $"Category {categoryId}";
             }
         }
     }

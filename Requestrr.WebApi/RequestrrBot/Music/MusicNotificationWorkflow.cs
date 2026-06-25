@@ -49,11 +49,12 @@ namespace Requestrr.WebApi.RequestrrBot.Music
         }
 
 
-        public async Task AddNotificationArtistAsync(string userId, string musicArtistId)
+        public async Task<MusicArtist> AddNotificationArtistAsync(string userId, string musicArtistId)
         {
             MusicArtist musicArtist = await _musicSearcher.SearchMusicForArtistIdAsync(new MusicRequest(null, int.MinValue), musicArtistId);
             _notificationsRepository.AddNotification(userId, musicArtist.ArtistId);
             await _userInterface.DisplayNotificationArtistSuccessAsync(musicArtist);
+            return musicArtist;
         }
 
 

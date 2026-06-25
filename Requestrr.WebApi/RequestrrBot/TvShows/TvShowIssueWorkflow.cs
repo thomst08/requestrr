@@ -1,5 +1,6 @@
-﻿
 
+
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using System;
 using System.Collections.Generic;
@@ -12,28 +13,34 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
     {
         private readonly TvShowUserRequester _user;
         private readonly int _categoryId;
+        private readonly string _categoryName;
         private readonly ITvShowSearcher _searcher;
         private readonly ITvShowRequester _requester;
         private readonly ITvShowUserInterface _userInterface;
         private readonly ITvShowNotificationWorkflow _tvShowNotificationWorkflow;
         private readonly TvShowsSettings _settings;
+        private readonly IRequestLogger _requestLogger;
 
         public TvShowIssueWorkflow(
             TvShowUserRequester user,
             int categoryId,
+            string categoryName,
             ITvShowSearcher searcher,
             ITvShowRequester requester,
             ITvShowUserInterface userInterface,
             ITvShowNotificationWorkflow tvShowNotificationWorkflow,
-            TvShowsSettings settings)
+            TvShowsSettings settings,
+            IRequestLogger requestLogger)
         {
             _user = user;
             _categoryId = categoryId;
+            _categoryName = categoryName;
             _searcher = searcher;
             _requester = requester;
             _userInterface = userInterface;
             _tvShowNotificationWorkflow = tvShowNotificationWorkflow;
             _settings = settings;
+            _requestLogger = requestLogger;
         }
         
         
@@ -50,7 +57,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             {
                 if (searchedTvShows.Count > 1)
                 {
-                    await _userInterface.ShowTvShowIssueSelection(new TvShowRequest(_user, _categoryId), searchedTvShows);
+                    await _userInterface.ShowTvShowIssueSelection(new TvShowRequest(_user, _categoryId, _categoryName), searchedTvShows);
                 }
                 else if (searchedTvShows.Count == 1)
                 {
@@ -78,7 +85,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                     return;
                 }
 
-                var searchedTvShow = await ((ITvShowIssueSearcher)_searcher).SearchTvShowLibraryAsync(new TvShowRequest(_user, _categoryId), tvDbId);
+                var searchedTvShow = await ((ITvShowIssueSearcher)_searcher).SearchTvShowLibraryAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvDbId);
                 if (searchedTvShow == null)
                 {
                     await _userInterface.WarnNoTvShowFoundByTvDbIdAsync(tvDbId);
@@ -113,7 +120,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             }
 
             tvShowName = tvShowName.Replace(".", " ");
-            searchedTvShows = await ((ITvShowIssueSearcher)_searcher).SearchTvShowLibraryAsync(new TvShowRequest(_user, _categoryId), tvShowName);
+            searchedTvShows = await ((ITvShowIssueSearcher)_searcher).SearchTvShowLibraryAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShowName);
 
             if (!searchedTvShows.Any())
             {
@@ -129,14 +136,14 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         public async Task HandleTvShowSelectionAsync(int tvDbId)
         {
             var tvShow = await GetTvShowAsync(tvDbId);
-            await _userInterface.DisplayTvShowIssueDetailsAsync(new TvShowRequest(_user, _categoryId), tvShow, string.Empty, null, null);
+            await _userInterface.DisplayTvShowIssueDetailsAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, string.Empty, null, null);
         }
         
         
         
         private async Task<TvShow> GetTvShowAsync(int tvDbId)
         {
-            var tvShow = await _searcher.GetTvShowDetailsAsync(new TvShowRequest(_user, _categoryId), tvDbId);
+            var tvShow = await _searcher.GetTvShowDetailsAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvDbId);
 
             if (tvShow.IsMultiSeasons())
             {
@@ -186,7 +193,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         /// <returns></returns>
         private async Task HandleIssueTvSelectionAsync(TvShow tvShow, string issue = "", int? seasonNumber = null, int? episodeNumber = null)
         {
-            await _userInterface.DisplayTvShowIssueDetailsAsync(new TvShowRequest(_user, _categoryId), tvShow, issue, seasonNumber, episodeNumber);
+            await _userInterface.DisplayTvShowIssueDetailsAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, issue, seasonNumber, episodeNumber);
         }
 
 
@@ -203,7 +210,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             var tvShow = await GetTvShowAsync(theTvDbId);
             tvShow = await EnsureSeasonEpisodesAsync(tvShow, seasonNumber);
             await _userInterface.DisplayTvShowIssueModalAsync(
-                new TvShowRequest(_user, _categoryId),
+                new TvShowRequest(_user, _categoryId, _categoryName),
                 tvShow,
                 issue,
                 seasonNumber,
@@ -229,7 +236,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
             bool result = false;
 
-            var request = new TvShowRequest(_user, _categoryId);
+            var request = new TvShowRequest(_user, _categoryId, _categoryName);
             var issueDescription = PrependIssueLocation(textBox.Value, seasonNumber, episodeNumber);
 
             //Check if searcher supports issues
@@ -238,7 +245,13 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                 result = await ((ITvShowIssueRequester)_requester).SubmitTvShowIssueAsync(request, tvShowId, issue, issueDescription);
             }
 
-            await _userInterface.CompleteTvShowIssueModalRequestAsync(await _searcher.GetTvShowDetailsAsync(request, tvShowId), result);
+            var tvShow = await _searcher.GetTvShowDetailsAsync(request, tvShowId);
+            await _userInterface.CompleteTvShowIssueModalRequestAsync(tvShow, result);
+
+            if (result)
+            {
+                await _requestLogger.LogTvShowIssueAsync(_user.UserId, _user.Username, tvShow.Title, tvShowId, issueDescription);
+            }
         }
 
         private string PrependIssueLocation(string description, int seasonNumber, int episodeNumber)

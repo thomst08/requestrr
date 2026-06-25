@@ -21,9 +21,9 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             return _userInterface.WarnMovieAlreadyRequestedAsync(movie);
         }
 
-        public Task AddNotificationAsync(string userId, int theMovieDbId)
+        public Task<Movie> AddNotificationAsync(string userId, int theMovieDbId)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<Movie>(null);
         }
     }
 }

@@ -21,9 +21,9 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             return _userInterface.WarnAlreadySeasonAlreadyRequestedAsync(tvShow, selectedSeason);
         }
 
-        public Task AddNotificationAsync(string userId, int theTvDbId, string seasonType, int seasonNumber)
+        public Task<TvShow> AddNotificationAsync(string userId, int theTvDbId, string seasonType, int seasonNumber)
         {
-            return Task.CompletedTask;
+            return Task.FromResult<TvShow>(null);
         }
     }
 }

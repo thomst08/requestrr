@@ -29,7 +29,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 COPY --from=dotnet-build /app/publish/ /root/
 
 # allow all users access to this so we can run container as non root.
-RUN chmod -R 755 /root
+# create /root/tmp and /root/logs if nonexistent
+RUN chmod -R 755 /root && mkdir -p /root/tmp /root/logs
 
 WORKDIR /root/
 

@@ -1,0 +1,13 @@
+version: "3.4"
+services:
+  requestrr:
+    build:
+      context: ./Requestrr.WebApi
+      dockerfile: dockerfile
+    container_name: requestrr-local
+    ports:
+      - "4545:4545"
+    volumes:
+      - ./Requestrr.WebApi/config:/root/config
+      - ./Requestrr.WebApi/logs:/root/logs
+    restart: unless-stopped

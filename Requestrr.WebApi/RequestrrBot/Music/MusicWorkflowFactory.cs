@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Requestrr.WebApi.RequestrrBot.ChatClients.Discord;
 using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Notifications;
 using Requestrr.WebApi.RequestrrBot.Notifications.Music;
 using System;
@@ -15,18 +16,21 @@ namespace Requestrr.WebApi.RequestrrBot.Music
     {
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly MusicNotificationsRepository _notificationsRepository;
+        private readonly IRequestLogger _requestLogger;
         private LidarrClient _lidarrClient;
 
 
         public MusicWorkflowFactory(
             DiscordSettingsProvider settingsProvider,
             MusicNotificationsRepository musicNotificationsRepository,
-            LidarrClient lidarrClient
+            LidarrClient lidarrClient,
+            IRequestLogger requestLogger
         )
         {
             _settingsProvider = settingsProvider;
             _notificationsRepository = musicNotificationsRepository;
             _lidarrClient = lidarrClient;
+            _requestLogger = requestLogger;
         }
 
 
@@ -42,7 +46,8 @@ namespace Requestrr.WebApi.RequestrrBot.Music
                 GetMusicClient<IMusicSearcher>(settings),
                 GetMusicClient<IMusicRequester>(settings),
                 new DiscordMusicUserInterface(interaction, GetMusicClient<IMusicSearcher>(settings)),
-                CreateMusicNotificationWorkflow(interaction, settings)
+                CreateMusicNotificationWorkflow(interaction, settings),
+                _requestLogger
                 );
         }
 

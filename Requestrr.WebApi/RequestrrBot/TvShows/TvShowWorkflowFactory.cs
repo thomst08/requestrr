@@ -8,6 +8,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Notifications;
 using Requestrr.WebApi.RequestrrBot.Notifications.TvShows;
 
@@ -18,6 +19,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         private readonly TvShowsSettingsProvider _tvShowsSettingsProvider;
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly TvShowNotificationsRepository _notificationsRepository;
+        private readonly IRequestLogger _requestLogger;
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private SonarrClient _sonarrDownloadClient;
@@ -28,7 +30,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             TvShowNotificationsRepository notificationsRepository,
             OverseerrClient overseerrClient,
             OmbiClient ombiDownloadClient,
-            SonarrClient radarrDownloadClient)
+            SonarrClient radarrDownloadClient,
+            IRequestLogger requestLogger)
         {
             _tvShowsSettingsProvider = tvShowsSettingsProvider;
             _settingsProvider = settingsProvider;
@@ -36,11 +39,13 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             _overseerrClient = overseerrClient;
             _ombiDownloadClient = ombiDownloadClient;
             _sonarrDownloadClient = radarrDownloadClient;
+            _requestLogger = requestLogger;
         }
 
         public TvShowRequestingWorkflow CreateRequestingWorkflow(DiscordInteraction interaction, int categoryId)
         {
             var settings = _settingsProvider.Provide();
+            var categoryName = GetCategoryName(settings, categoryId);
 
             ITvShowIssueSearcher issueSearcher = null;
             var searcher = GetTvShowClient<ITvShowSearcher>(settings);
@@ -50,17 +55,20 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
             return new TvShowRequestingWorkflow(new TvShowUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                                                 categoryId,
+                                                categoryName,
                                                 GetTvShowClient<ITvShowSearcher>(settings),
                                                 GetTvShowClient<ITvShowRequester>(settings),
                                                 new DiscordTvShowUserInterface(interaction, issueSearcher),
                                                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
-                                                _tvShowsSettingsProvider.Provide());
+                                                _tvShowsSettingsProvider.Provide(),
+                                                _requestLogger);
         }
         
         
         public TvShowIssueWorkflow CreateIssueWorkflow(DiscordInteraction interaction, int categoryId)
         {
             var settings = _settingsProvider.Provide();
+            var categoryName = GetCategoryName(settings, categoryId);
 
             ITvShowIssueSearcher issueSearcher = null;
             ITvShowSearcher searcher = GetTvShowClient<ITvShowSearcher>(settings);
@@ -71,11 +79,13 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
             return new TvShowIssueWorkflow(new TvShowUserRequester(interaction.User.Id.ToString(), interaction.User.Username),
                 categoryId,
+                categoryName,
                 GetTvShowClient<ITvShowSearcher>(settings),
                 GetTvShowClient<ITvShowRequester>(settings),
                 new DiscordTvShowUserInterface(interaction, issueSearcher),
                 CreateMovieNotificationWorkflow(interaction, settings, GetTvShowClient<ITvShowSearcher>(settings)),
-                _tvShowsSettingsProvider.Provide());
+                _tvShowsSettingsProvider.Provide(),
+                _requestLogger);
         }
         
 
@@ -137,6 +147,30 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             else
             {
                 throw new Exception($"Invalid configured tv show download client {settings.TvShowDownloadClient}");
+            }
+        }
+
+        private string GetCategoryName(DiscordSettings settings, int categoryId)
+        {
+            if (settings.TvShowDownloadClient == DownloadClient.Sonarr)
+            {
+                var sonarrSettings = _sonarrDownloadClient.GetSettings();
+                var category = sonarrSettings.Categories.FirstOrDefault(c => c.Id == categoryId);
+                return category?.Name ?? $"Category {categoryId}";
+            }
+            else if (settings.TvShowDownloadClient == DownloadClient.Ombi)
+            {
+                return "Default"; // Ombi doesn't have multiple categories
+            }
+            else if (settings.TvShowDownloadClient == DownloadClient.Overseerr)
+            {
+                var overseerrSettings = _overseerrClient.GetSettings();
+                var category = overseerrSettings.TvShows.Categories.FirstOrDefault(c => c.Id == categoryId);
+                return category?.Name ?? $"Category {categoryId}";
+            }
+            else
+            {
+                return $"Category {categoryId}";
             }
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Requestrr.WebApi.RequestrrBot.Logging;
 
 namespace Requestrr.WebApi.RequestrrBot.Music
 {
@@ -13,6 +14,7 @@ namespace Requestrr.WebApi.RequestrrBot.Music
         private readonly IMusicRequester _requester;
         private readonly IMusicUserInterface _userInterface;
         private readonly IMusicNotificationWorkflow _notificationWorkflow;
+        private readonly IRequestLogger _requestLogger;
 
 
         public MusicRequestingWorkflow(
@@ -21,7 +23,8 @@ namespace Requestrr.WebApi.RequestrrBot.Music
             IMusicSearcher searcher,
             IMusicRequester requester,
             IMusicUserInterface userInterface,
-            IMusicNotificationWorkflow notificationWorkflow
+            IMusicNotificationWorkflow notificationWorkflow,
+            IRequestLogger requestLogger
         )
         {
             _categoryId = categoryId;
@@ -30,6 +33,7 @@ namespace Requestrr.WebApi.RequestrrBot.Music
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = notificationWorkflow;
+            _requestLogger = requestLogger;
         }
 
 
@@ -106,11 +110,13 @@ namespace Requestrr.WebApi.RequestrrBot.Music
             if (result.WasDenied)
             {
                 await _userInterface.DisplayArtistRequestDeniedAsync(musicArtist);
+                await _requestLogger.LogMusicRequestAsync(_user.UserId, _user.Username, musicArtist.ArtistName, artistId, false, "Request denied");
             }
             else
             {
                 await _userInterface.DisplayArtistRequestSuccessAsync(musicArtist);
                 await _notificationWorkflow.NotifyForNewRequestAsync(_user.UserId, musicArtist);
+                await _requestLogger.LogMusicRequestAsync(_user.UserId, _user.Username, musicArtist.ArtistName, artistId, true);
             }
         }
 

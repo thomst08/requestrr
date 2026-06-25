@@ -126,6 +126,12 @@
     "Client": "Disabled",
     "Restrictions": "None"
   },
+  "Logging": {
+    "Enabled": true,
+    "RetentionDays": 90,
+    "DiscordLoggingEnabled": false,
+    "DiscordChannelId": ""
+  },
   "Port": 4545,
   "BaseUrl": "",
   "DisableAuthentication": false,

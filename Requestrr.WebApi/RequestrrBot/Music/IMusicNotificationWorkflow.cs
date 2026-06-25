@@ -7,6 +7,6 @@ namespace Requestrr.WebApi.RequestrrBot.Music
     {
         Task NotifyForNewRequestAsync(string userId, MusicArtist musicArtist);
         Task NotifyForExistingRequestAsync(string userId, MusicArtist musicArtist);
-        Task AddNotificationArtistAsync(string userId, string musicArtistId);
+        Task<MusicArtist> AddNotificationArtistAsync(string userId, string musicArtistId);
     }
 }

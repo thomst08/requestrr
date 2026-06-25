@@ -54,7 +54,11 @@ namespace Requestrr.WebApi
         {
             Console.WriteLine($"Starting Requestrr - build '{(string.IsNullOrWhiteSpace(Language.BuildVersion) ? "Unknown" : Language.BuildVersion)}'");
 
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+                });
             services.AddHttpClient();
 
             // In production, the React files will be served from this directory
@@ -106,6 +110,9 @@ namespace Requestrr.WebApi
             services.AddSingleton<RadarrSettingsProvider>();
             services.AddSingleton<SonarrSettingsProvider>();
             services.AddSingleton<LidarrSettingsProvider>();
+            services.AddSingleton<Requestrr.WebApi.Controllers.Logging.LoggingSettingsProvider>();
+            services.AddSingleton<Requestrr.WebApi.Controllers.Logging.LoggingSettingsRepository>();
+            services.AddSingleton<Requestrr.WebApi.RequestrrBot.Logging.IRequestLogger, Requestrr.WebApi.RequestrrBot.Logging.RequestLogger>();
             services.AddSingleton<RequestrrBot.ChatBot>();
         }
 

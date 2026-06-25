@@ -200,7 +200,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
                 var jsonTvShow = await FindSeriesInSonarrAsync(theTvDbId, sonarrSeriesId?.ToString());
 
                 var convertedTvShow = Convert(jsonTvShow, jsonTvShow.seasons, jsonTvShow.id.HasValue ? await GetSonarrEpisodesAsync(jsonTvShow.id.Value) : new Dictionary<int, JSONEpisode[]>());
-                var searchedTvShow = (await SearchTvShowAsync(new TvShowRequest(null, int.MinValue), convertedTvShow.Title)).FirstOrDefault(x => x.TheTvDbId == theTvDbId);
+                var searchedTvShow = (await SearchTvShowAsync(new TvShowRequest(null, int.MinValue, string.Empty), convertedTvShow.Title)).FirstOrDefault(x => x.TheTvDbId == theTvDbId);
 
                 convertedTvShow.Banner = searchedTvShow?.Banner;
 

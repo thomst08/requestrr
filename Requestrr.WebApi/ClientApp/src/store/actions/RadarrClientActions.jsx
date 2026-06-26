@@ -404,7 +404,8 @@ export function saveRadarrClient(saveModel) {
                 'Categories': state.movies.radarr.categories,
                 "Version": saveModel.radarr.version,
                 'SearchNewRequests': saveModel.radarr.searchNewRequests,
-                'MonitorNewRequests': saveModel.radarr.monitorNewRequests
+                'MonitorNewRequests': saveModel.radarr.monitorNewRequests,
+                'AutoTagRequesters': saveModel.radarr.autoTagRequesters
             })
         })
             .then(data => data.json())
@@ -420,6 +421,7 @@ export function saveRadarrClient(saveModel) {
                         categories: state.movies.radarr.categories,
                         searchNewRequests: saveModel.radarr.searchNewRequests,
                         monitorNewRequests: saveModel.radarr.monitorNewRequests,
+                        autoTagRequesters: saveModel.radarr.autoTagRequesters,
                         version: saveModel.radarr.version
                     };
 

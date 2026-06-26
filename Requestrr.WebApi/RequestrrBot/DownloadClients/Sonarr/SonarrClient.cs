@@ -135,6 +135,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
             return CreateInstance<ITvShowRequester>().RequestTvShowAsync(request, tvShow, season);
         }
 
+        public SonarrSettings GetSettings()
+        {
+            return _settingsProvider.Provide();
+        }
+
         private T CreateInstance<T>() where T : class
         {
             if (_settingsProvider.Provide().Version == "2")

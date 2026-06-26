@@ -20,6 +20,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr;
 using Requestrr.WebApi.RequestrrBot.Locale;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.Movies;
 using Requestrr.WebApi.RequestrrBot.Music;
 using Requestrr.WebApi.RequestrrBot.Notifications;
@@ -39,6 +40,7 @@ namespace Requestrr.WebApi.RequestrrBot
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ChatBot> _logger;
         private readonly DiscordSettingsProvider _discordSettingsProvider;
+        private readonly IRequestLogger _requestLogger;
         private readonly ConcurrentBag<Func<Task>> _refreshQueue = new ConcurrentBag<Func<Task>>();
         private DiscordSettings _currentSettings = new DiscordSettings();
         private MovieWorkflowFactory _movieWorkflowFactory;
@@ -61,19 +63,20 @@ namespace Requestrr.WebApi.RequestrrBot
         private const int UnrecoverableHeartbeatInterval = 4;
         private const int UnrecoverableDisconnectTimeoutMinutes = 10;
 
-        public ChatBot(IServiceProvider serviceProvider, ILogger<ChatBot> logger, DiscordSettingsProvider discordSettingsProvider)
+        public ChatBot(IServiceProvider serviceProvider, ILogger<ChatBot> logger, DiscordSettingsProvider discordSettingsProvider, IRequestLogger requestLogger)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _discordSettingsProvider = discordSettingsProvider;
+            _requestLogger = requestLogger;
             _overseerrClient = new OverseerrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<OverseerrClient>>(), serviceProvider.Get<OverseerrSettingsProvider>());
             _ombiDownloadClient = new OmbiClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<OmbiClient>>(), serviceProvider.Get<OmbiSettingsProvider>());
             _radarrDownloadClient = new RadarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<RadarrClient>>(), serviceProvider.Get<RadarrSettingsProvider>());
             _sonarrDownloadClient = new SonarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<SonarrClient>>(), serviceProvider.Get<SonarrSettingsProvider>());
             _lidarrDownloadClient = new LidarrClient(serviceProvider.Get<IHttpClientFactory>(), serviceProvider.Get<ILogger<LidarrClient>>(), serviceProvider.Get<LidarrSettingsProvider>());
-            _movieWorkflowFactory = new MovieWorkflowFactory(_discordSettingsProvider, _movieNotificationRepository, _overseerrClient, _ombiDownloadClient, _radarrDownloadClient);
-            _tvShowWorkflowFactory = new TvShowWorkflowFactory(serviceProvider.Get<TvShowsSettingsProvider>(), _discordSettingsProvider, _tvShowNotificationRepository, _overseerrClient, _ombiDownloadClient, _sonarrDownloadClient);
-            _musicWorkflowFactory = new MusicWorkflowFactory(_discordSettingsProvider, _musicNotificationRepository, _lidarrDownloadClient);
+            _movieWorkflowFactory = new MovieWorkflowFactory(_discordSettingsProvider, _movieNotificationRepository, _overseerrClient, _ombiDownloadClient, _radarrDownloadClient, _requestLogger);
+            _tvShowWorkflowFactory = new TvShowWorkflowFactory(serviceProvider.Get<TvShowsSettingsProvider>(), _discordSettingsProvider, _tvShowNotificationRepository, _overseerrClient, _ombiDownloadClient, _sonarrDownloadClient, _requestLogger);
+            _musicWorkflowFactory = new MusicWorkflowFactory(_discordSettingsProvider, _musicNotificationRepository, _lidarrDownloadClient, _requestLogger);
         }
 
         public async void Start()
@@ -215,6 +218,12 @@ namespace Requestrr.WebApi.RequestrrBot
                         _heartbeatSentAt = DateTime.Now;
                         _socketClosedAt = null;
                         await _client.ConnectAsync();
+                        
+                        // Set the Discord client for request logging
+                        if (_requestLogger is RequestLogger logger)
+                        {
+                            logger.SetDiscordClient(_client);
+                        }
                     }
                     catch (Exception ex) when (ex.InnerException is DSharpPlus.Exceptions.UnauthorizedException)
                     {
@@ -439,8 +448,17 @@ namespace Requestrr.WebApi.RequestrrBot
                     }
                     else if (e.Id.ToLower().StartsWith("mnr"))
                     {
-                        await CreateMovieNotificationWorkflow(e)
-                            .AddNotificationAsync(e.Id.Split("/").Skip(1).First(), int.Parse(e.Id.Split("/").Last()));
+                        var userId = e.Id.Split("/").Skip(1).First();
+                        var theMovieDbId = int.Parse(e.Id.Split("/").Last());
+                        
+                        var movie = await CreateMovieNotificationWorkflow(e)
+                            .AddNotificationAsync(userId, theMovieDbId);
+                        
+                        // Log the notification subscription
+                        if (movie != null)
+                        {
+                            await _requestLogger.LogMovieNotificationAsync(e.User.Id.ToString(), e.User.Username, movie.Title, theMovieDbId);
+                        }
                     }
                     else if (e.Id.ToLower().StartsWith("tr") || e.Id.ToLower().StartsWith("ts"))
                     {
@@ -458,8 +476,14 @@ namespace Requestrr.WebApi.RequestrrBot
                         var seasonType = splitValues[2];
                         var seasonNumber = splitValues[3];
 
-                        await CreateTvShowNotificationWorkflow(e)
+                        var tvShow = await CreateTvShowNotificationWorkflow(e)
                             .AddNotificationAsync(userId, tvDbId, seasonType, int.Parse(seasonNumber));
+                        
+                        // Log the notification subscription
+                        if (tvShow != null)
+                        {
+                            await _requestLogger.LogTvShowNotificationAsync(e.User.Id.ToString(), e.User.Username, tvShow.Title, tvDbId, $"{seasonType} Season {seasonNumber}");
+                        }
                     }
                     else if (e.Id.ToLower().StartsWith("mur"))
                     {
@@ -467,8 +491,17 @@ namespace Requestrr.WebApi.RequestrrBot
                     }
                     else if (e.Id.ToLower().StartsWith("munr"))
                     {
-                        await CreateMusicNotificationWorkflow(e)
-                            .AddNotificationArtistAsync(e.Id.Split("/").Skip(1).First(), e.Id.Split("/").Last());
+                        var userId = e.Id.Split("/").Skip(1).First();
+                        var artistId = e.Id.Split("/").Last();
+                        
+                        var musicArtist = await CreateMusicNotificationWorkflow(e)
+                            .AddNotificationArtistAsync(userId, artistId);
+                        
+                        // Log the notification subscription
+                        if (musicArtist != null)
+                        {
+                            await _requestLogger.LogMusicNotificationAsync(e.User.Id.ToString(), e.User.Username, musicArtist.ArtistName, artistId);
+                        }
                     }
                 }
             }

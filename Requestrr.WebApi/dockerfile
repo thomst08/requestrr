@@ -8,17 +8,14 @@ RUN npm install
 
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as dotnet-build
-
-RUN apt-get update && \
-  apt-get --no-install-recommends -y install nodejs npm
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as dotnet-build
 
 COPY ./ /app
 COPY --from=node-build /app /app/ClientApp
 
 WORKDIR /app
 
-RUN dotnet publish -c release -o publish Requestrr.WebApi.csproj
+RUN dotnet publish -c release -o publish -p:SkipSpaPublish=true Requestrr.WebApi.csproj
 RUN rm -rf /app/publish/config
 RUN rm -rf /app/publish/tmp
 RUN mkdir /app/publish/config
@@ -27,9 +24,11 @@ RUN rm -f /app/publish/appsettings.Development.json
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 
 COPY --from=dotnet-build /app/publish/ /root/
+COPY --from=node-build /app/build /root/ClientApp/build
 
 # allow all users access to this so we can run container as non root.
-RUN chmod -R 755 /root
+# create /root/tmp and /root/logs if nonexistent
+RUN chmod -R 755 /root && mkdir -p /root/tmp /root/logs
 
 WORKDIR /root/
 

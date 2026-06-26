@@ -15,6 +15,7 @@
                 Categories =  settings.DownloadClients.Radarr.Categories.ToObject<RadarrCategory[]>(),
                 SearchNewRequests  = settings.DownloadClients.Radarr.SearchNewRequests,
                 MonitorNewRequests  = settings.DownloadClients.Radarr.MonitorNewRequests,
+                AutoTagRequesters = settings.DownloadClients.Radarr.AutoTagRequesters != null ? (bool)settings.DownloadClients.Radarr.AutoTagRequesters : false,
                 UseSSL = (bool)settings.DownloadClients.Radarr.UseSSL,
                 Version = settings.DownloadClients.Radarr.Version,
             };

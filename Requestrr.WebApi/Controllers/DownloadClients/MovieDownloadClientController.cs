@@ -101,6 +101,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients
                     UseSSL = _downloadClientsSettings.Radarr.UseSSL,
                     SearchNewRequests = _downloadClientsSettings.Radarr.SearchNewRequests,
                     MonitorNewRequests = _downloadClientsSettings.Radarr.MonitorNewRequests,
+                    AutoTagRequesters = _downloadClientsSettings.Radarr.AutoTagRequesters,
                     Version = _downloadClientsSettings.Radarr.Version
                 },
                 Ombi = new OmbiMovieSettings

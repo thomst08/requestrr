@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows;
 
 namespace Requestrr.WebApi.RequestrrBot.TvShows
@@ -10,28 +11,34 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
     {
         private readonly TvShowUserRequester _user;
         private readonly int _categoryId;
+        private readonly string _categoryName;
         private readonly ITvShowSearcher _searcher;
         private readonly ITvShowRequester _requester;
         private readonly ITvShowUserInterface _userInterface;
         private readonly ITvShowNotificationWorkflow _tvShowNotificationWorkflow;
         private readonly TvShowsSettings _settings;
+        private readonly IRequestLogger _requestLogger;
 
         public TvShowRequestingWorkflow(
             TvShowUserRequester user,
             int categoryId,
+            string categoryName,
             ITvShowSearcher searcher,
             ITvShowRequester requester,
             ITvShowUserInterface userInterface,
             ITvShowNotificationWorkflow tvShowNotificationWorkflow,
-            TvShowsSettings settings)
+            TvShowsSettings settings,
+            IRequestLogger requestLogger)
         {
             _user = user;
             _categoryId = categoryId;
+            _categoryName = categoryName;
             _searcher = searcher;
             _requester = requester;
             _userInterface = userInterface;
             _tvShowNotificationWorkflow = tvShowNotificationWorkflow;
             _settings = settings;
+            _requestLogger = requestLogger;
         }
 
         public async Task SearchTvShowAsync(string tvShowName)
@@ -42,7 +49,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             {
                 if (searchedTvShows.Count > 1)
                 {
-                    await _userInterface.ShowTvShowSelection(new TvShowRequest(_user, _categoryId), searchedTvShows);
+                    await _userInterface.ShowTvShowSelection(new TvShowRequest(_user, _categoryId, _categoryName), searchedTvShows);
                 }
                 else if (searchedTvShows.Count == 1)
                 {
@@ -56,7 +63,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
         {
             try
             {
-                var searchedTvShow = await _searcher.SearchTvShowAsync(new TvShowRequest(_user, _categoryId), tvDbId);
+                var searchedTvShow = await _searcher.SearchTvShowAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvDbId);
                 await HandleTvShowSelectionAsync(searchedTvShow.TheTvDbId);
             }
             catch
@@ -70,7 +77,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             IReadOnlyList<SearchedTvShow> searchedTvShows = Array.Empty<SearchedTvShow>();
 
             tvShowName = tvShowName.Replace(".", " ");
-            searchedTvShows = await _searcher.SearchTvShowAsync(new TvShowRequest(_user, _categoryId), tvShowName);
+            searchedTvShows = await _searcher.SearchTvShowAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShowName);
 
             if (!searchedTvShows.Any())
             {
@@ -120,7 +127,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
                 }
                 else
                 {
-                    await _userInterface.DisplayMultiSeasonSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, GetAvailableTvShowSeasonsBasedOnRestrictions(tvShow));
+                    await _userInterface.DisplayMultiSeasonSelectionAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, GetAvailableTvShowSeasonsBasedOnRestrictions(tvShow));
                 }
             }
         }
@@ -158,16 +165,16 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             switch (selectedSeason)
             {
                 case FutureTvSeasons futureTvSeasons:
-                    await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, futureTvSeasons);
+                    await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, futureTvSeasons);
                     break;
                 case AllTvSeasons allTvSeasons:
-                    await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, allTvSeasons);
+                    await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, allTvSeasons);
                     break;
                 case NormalTvSeason normalTvSeason:
-                    await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId), tvShow, normalTvSeason);
+                    await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .HandleSelectionAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, normalTvSeason);
                     break;
                 default:
                     throw new Exception($"Could not handle season of type \"{selectedSeason.GetType().Name}\"");
@@ -182,16 +189,16 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
             switch (selectedSeason)
             {
                 case FutureTvSeasons futureTvSeasons:
-                    await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, futureTvSeasons);
+                    await new FutureSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .RequestAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, futureTvSeasons);
                     break;
                 case AllTvSeasons allTvSeasons:
-                    await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, allTvSeasons);
+                    await new AllSeasonsRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .RequestAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, allTvSeasons);
                     break;
                 case NormalTvSeason normalTvSeason:
-                    await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow)
-                        .RequestAsync(new TvShowRequest(_user, _categoryId), tvShow, normalTvSeason);
+                    await new NormalTvSeasonRequestingWorkflow(_searcher, _requester, _userInterface, _tvShowNotificationWorkflow, _requestLogger)
+                        .RequestAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvShow, normalTvSeason);
                     break;
                 default:
                     throw new Exception($"Could not handle season of type \"{selectedSeason.GetType().Name}\"");
@@ -200,7 +207,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
 
         private async Task<TvShow> GetTvShowAsync(int tvDbId)
         {
-            var tvShow = await _searcher.GetTvShowDetailsAsync(new TvShowRequest(_user, _categoryId), tvDbId);
+            var tvShow = await _searcher.GetTvShowDetailsAsync(new TvShowRequest(_user, _categoryId, _categoryName), tvDbId);
 
             if (tvShow.IsMultiSeasons())
             {

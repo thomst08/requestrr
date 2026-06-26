@@ -2,32 +2,39 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Requestrr.WebApi.RequestrrBot.Logging;
 
 namespace Requestrr.WebApi.RequestrrBot.Movies
 {
     public class MovieRequestingWorkflow
     {
         private readonly int _categoryId;
+        private readonly string _categoryName;
         private readonly MovieUserRequester _user;
         private readonly IMovieSearcher _searcher;
         private readonly IMovieRequester _requester;
         private readonly IMovieUserInterface _userInterface;
         private readonly IMovieNotificationWorkflow _notificationWorkflow;
+        private readonly IRequestLogger _requestLogger;
 
         public MovieRequestingWorkflow(
             MovieUserRequester user,
             int categoryId,
+            string categoryName,
             IMovieSearcher searcher,
             IMovieRequester requester,
             IMovieUserInterface userInterface,
-            IMovieNotificationWorkflow movieNotificationWorkflow)
+            IMovieNotificationWorkflow movieNotificationWorkflow,
+            IRequestLogger requestLogger)
         {
             _categoryId = categoryId;
+            _categoryName = categoryName;
             _user = user;
             _searcher = searcher;
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = movieNotificationWorkflow;
+            _requestLogger = requestLogger;
         }
 
         public async Task SearchMovieAsync(string movieName)
@@ -112,11 +119,13 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
             if (result.WasDenied)
             {
                 await _userInterface.DisplayRequestDeniedAsync(movie);
+                await _requestLogger.LogMovieRequestAsync(_user.UserId, _user.Username, movie.Title, theMovieDbId, _categoryName, false, "Request denied");
             }
             else
             {
                 await _userInterface.DisplayRequestSuccessAsync(movie);
                 await _notificationWorkflow.NotifyForNewRequestAsync(_user.UserId, movie);
+                await _requestLogger.LogMovieRequestAsync(_user.UserId, _user.Username, movie.Title, theMovieDbId, _categoryName, true);
             }
         }
 

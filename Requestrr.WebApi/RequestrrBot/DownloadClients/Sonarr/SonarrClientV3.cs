@@ -312,6 +312,25 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
             var jsonTvShow = JsonConvert.DeserializeObject<IEnumerable<JSONTvShow>>(jsonResponse).First();
 
             int[] tags = category.Tags;
+            if (SonarrSettings.AutoTagRequesters)
+            {
+                try
+                {
+                    tags = await RequesterTagHelper.GetTagsWithRequester(
+                        category.Tags,
+                        request.User.Username,
+                        BaseURL,
+                        async () => await GetTagsAsync(),
+                        async label => await CreateTagAsync(label),
+                        t => t.label,
+                        t => t.id,
+                        _logger);
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to create/resolve requester tag for user \"{request.User.Username}\", proceeding without user tag");
+                }
+            }
 
             string seriesType = category.SeriesType;
 
@@ -389,7 +408,28 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
                 throw new System.Exception($"An error occurred while requesting tv show \"{tvShow.Title}\" from Sonarr, could not find category with id {request.CategoryId}");
             }
 
-            sonarrSeries.tags = JToken.FromObject(category.Tags);
+            int[] tags = category.Tags;
+            if (SonarrSettings.AutoTagRequesters)
+            {
+                try
+                {
+                    tags = await RequesterTagHelper.GetTagsWithRequester(
+                        category.Tags,
+                        request.User.Username,
+                        BaseURL,
+                        async () => await GetTagsAsync(),
+                        async label => await CreateTagAsync(label),
+                        t => t.label,
+                        t => t.id,
+                        _logger);
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to create/resolve requester tag for user \"{request.User.Username}\", proceeding without user tag");
+                }
+            }
+
+            sonarrSeries.tags = JToken.FromObject(tags);
             sonarrSeries.qualityProfileId = category.ProfileId;
             sonarrSeries.languageProfileId = category.LanguageId;
             sonarrSeries.monitored = SonarrSettings.MonitorNewRequests;
@@ -626,6 +666,21 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
         {
             var protocol = settings.UseSSL ? "https" : "http";
             return $"{protocol}://{settings.Hostname}:{settings.Port}{settings.BaseUrl}/api/v{settings.Version}";
+        }
+
+        private async Task<IList<JSONTag>> GetTagsAsync()
+        {
+            var response = await HttpGetAsync($"{BaseURL}/tag");
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<IList<JSONTag>>(jsonResponse);
+        }
+
+        private async Task<JSONTag> CreateTagAsync(string label)
+        {
+            var response = await HttpPostAsync($"{BaseURL}/tag", JsonConvert.SerializeObject(new { label, id = 0 }));
+            await response.ThrowIfNotSuccessfulAsync("SonarrTagCreation failed", x => x.error);
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<JSONTag>(jsonResponse);
         }
 
         private Task<HttpResponseMessage> HttpGetAsync(string url)

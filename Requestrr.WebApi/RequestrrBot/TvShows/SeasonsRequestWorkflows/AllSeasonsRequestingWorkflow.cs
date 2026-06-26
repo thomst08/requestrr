@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Requestrr.WebApi.RequestrrBot.Logging;
 
 namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
 {
@@ -9,17 +10,20 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
         private readonly ITvShowRequester _requester;
         private readonly ITvShowUserInterface _userInterface;
         private readonly ITvShowNotificationWorkflow _tvShowNotificationWorkflow;
+        private readonly IRequestLogger _requestLogger;
 
         public AllSeasonsRequestingWorkflow(
             ITvShowSearcher searcher,
             ITvShowRequester requester,
             ITvShowUserInterface userInterface,
-            ITvShowNotificationWorkflow tvShowNotificationWorkflow)
+            ITvShowNotificationWorkflow tvShowNotificationWorkflow,
+            IRequestLogger requestLogger)
         {
             _searcher = searcher;
             _requester = requester;
             _userInterface = userInterface;
             _tvShowNotificationWorkflow = tvShowNotificationWorkflow;
+            _requestLogger = requestLogger;
         }
 
         public async Task HandleSelectionAsync(TvShowRequest request, TvShow tvShow, AllTvSeasons selectedSeason)
@@ -41,6 +45,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
             if (result.WasDenied)
             {
                 await _userInterface.DisplayRequestDeniedForSeasonAsync(tvShow, selectedSeason);
+                await _requestLogger.LogTvShowRequestAsync(request.User.UserId, request.User.Username, tvShow.Title, tvShow.TheTvDbId, "All Seasons", request.CategoryName, false, "Request denied");
             }
             else
             {
@@ -50,6 +55,8 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows.SeasonsRequestWorkflows
                 {
                     await _tvShowNotificationWorkflow.NotifyForNewRequestAsync(request.User.UserId, tvShow, season);
                 }
+
+                await _requestLogger.LogTvShowRequestAsync(request.User.UserId, request.User.Username, tvShow.Title, tvShow.TheTvDbId, "All Seasons", request.CategoryName, true);
             }
         }
     }

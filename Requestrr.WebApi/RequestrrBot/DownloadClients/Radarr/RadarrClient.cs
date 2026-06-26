@@ -92,6 +92,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
             return CreateInstance<IMovieRequester>().RequestMovieAsync(request, movie);
         }
 
+        public RadarrSettings GetSettings()
+        {
+            return _settingsProvider.Provide();
+        }
+
         private T CreateInstance<T>() where T : class
         {
             if (_settingsProvider.Provide().Version == "2")

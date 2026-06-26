@@ -11,6 +11,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Sonarr
         public SonarrCategory[] Categories { get; set; } = Array.Empty<SonarrCategory>();
         public bool SearchNewRequests { get; set; }
         public bool MonitorNewRequests { get; set; }
+        public bool AutoTagRequesters { get; set; }
         public bool UseSSL { get; set; }
         public string Version { get; set; }
     }

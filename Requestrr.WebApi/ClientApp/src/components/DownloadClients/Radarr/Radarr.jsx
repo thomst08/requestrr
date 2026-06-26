@@ -34,6 +34,7 @@ function Radarr(props) {
   const [baseUrl, setBaseUrl] = useState("");
   const [searchNewRequests, setSearchNewRequests] = useState(true);
   const [monitorNewRequests, setMonitorNewRequests] = useState(true);
+  const [autoTagRequesters, setAutoTagRequesters] = useState(false);
 
   const propRef = useRef();
 
@@ -69,7 +70,7 @@ function Radarr(props) {
 
   useEffect(() => {
     onValueChange();
-  }, [apiVersion, apiKey, hostname, port, baseUrl, monitorNewRequests, searchNewRequests]);
+  }, [apiVersion, apiKey, hostname, port, baseUrl, monitorNewRequests, searchNewRequests, autoTagRequesters]);
 
 
 
@@ -116,6 +117,7 @@ function Radarr(props) {
     setBaseUrl(reduxState.settings.baseUrl);
     setSearchNewRequests(reduxState.settings.searchNewRequests);
     setMonitorNewRequests(reduxState.settings.monitorNewRequests);
+    setAutoTagRequesters(reduxState.settings.autoTagRequesters);
   };
 
   const onUseSSLChanged = (event) => {
@@ -181,6 +183,7 @@ function Radarr(props) {
       version: apiVersion,
       searchNewRequests: searchNewRequests,
       monitorNewRequests: monitorNewRequests,
+      autoTagRequesters: autoTagRequesters,
     });
 
     onValidate();
@@ -360,6 +363,23 @@ function Radarr(props) {
                 <span className="text-muted">Automatically search for movie when request is made</span>
               </label>
             </FormGroup>
+            {apiVersion !== "2" ?
+              <FormGroup className="custom-control custom-control-alternative custom-checkbox mb-3">
+                <Input
+                  className="custom-control-input"
+                  id="AutoTagRequesters"
+                  type="checkbox"
+                  onChange={e => { setAutoTagRequesters(!autoTagRequesters); }}
+                  checked={autoTagRequesters}
+                />
+                <label
+                  className="custom-control-label"
+                  htmlFor="AutoTagRequesters">
+                  <span className="text-muted">Automatically tag requests with Discord username</span>
+                </label>
+              </FormGroup>
+              : null
+            }
           </Col>
         </Row>
       </div>

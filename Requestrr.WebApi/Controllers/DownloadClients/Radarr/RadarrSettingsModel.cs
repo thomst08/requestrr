@@ -10,6 +10,7 @@ namespace Requestrr.WebApi.Controllers.DownloadClients.Radarr
         public RadarrSettingsCategory[] Categories { get; set; } = Array.Empty<RadarrSettingsCategory>();
         public bool SearchNewRequests { get; set; }
         public bool MonitorNewRequests { get; set; }
+        public bool AutoTagRequesters { get; set; }
     }
 
     public class RadarrSettingsCategory

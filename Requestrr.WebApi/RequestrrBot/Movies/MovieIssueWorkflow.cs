@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.SlashCommands;
 using Requestrr.WebApi.RequestrrBot.ChatClients.Discord;
 using Requestrr.WebApi.RequestrrBot.DownloadClients;
+using Requestrr.WebApi.RequestrrBot.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,26 +13,32 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
     public class MovieIssueWorkflow
     {
         private readonly int _categoryId;
+        private readonly string _categoryName;
         private readonly MovieUserRequester _user;
         private readonly IMovieSearcher _searcher;
         private readonly IMovieRequester _requester;
         private readonly IMovieUserInterface _userInterface;
         private readonly IMovieNotificationWorkflow _notificationWorkflow;
+        private readonly IRequestLogger _requestLogger;
 
         public MovieIssueWorkflow(
             MovieUserRequester user,
             int categoryId,
+            string categoryName,
             IMovieSearcher searcher,
             IMovieRequester requester,
             IMovieUserInterface userInterface,
-            IMovieNotificationWorkflow movieNotificationWorkflow)
+            IMovieNotificationWorkflow movieNotificationWorkflow,
+            IRequestLogger requestLogger)
         {
             _categoryId = categoryId;
+            _categoryName = categoryName;
             _user = user;
             _searcher = searcher;
             _requester = requester;
             _userInterface = userInterface;
             _notificationWorkflow = movieNotificationWorkflow;
+            _requestLogger = requestLogger;
         }
 
 
@@ -183,7 +190,13 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
                 result = await ((IMovieIssueRequester)_requester).SubmitMovieIssueAsync(request, movieId, issue, textBox.Value);
             }
 
-            await _userInterface.CompleteMovieIssueModalRequestAsync(await _searcher.SearchMovieAsync(request, movieId), result);
+            var movie = await _searcher.SearchMovieAsync(request, movieId);
+            await _userInterface.CompleteMovieIssueModalRequestAsync(movie, result);
+
+            if (result)
+            {
+                await _requestLogger.LogMovieIssueAsync(_user.UserId, _user.Username, movie.Title, movieId, textBox.Value);
+            }
         }
 
 

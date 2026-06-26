@@ -39,6 +39,7 @@ export default function TvShowsClientsReducer(state = {}, action) {
         categories: action.payload.sonarr.categories,
         searchNewRequests: action.payload.sonarr.searchNewRequests,
         monitorNewRequests: action.payload.sonarr.monitorNewRequests,
+        autoTagRequesters: action.payload.sonarr.autoTagRequesters,
         useSSL: action.payload.sonarr.useSSL,
         version: action.payload.sonarr.version,
         isLoadingPaths: false,

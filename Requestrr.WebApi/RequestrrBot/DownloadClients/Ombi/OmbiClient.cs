@@ -352,7 +352,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi
 
                         try
                         {
-                            var show = await GetTvShowDetailsAsync(new TvShowRequest(null, int.MinValue), showId);
+                            var show = await GetTvShowDetailsAsync(new TvShowRequest(null, int.MinValue, string.Empty), showId);
                             tvShows.Add(show);
                         }
                         catch

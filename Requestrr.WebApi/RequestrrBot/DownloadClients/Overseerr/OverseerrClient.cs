@@ -37,6 +37,11 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
             _overseerrSettingsProvider = overseerrSettingsProvider;
         }
 
+        public OverseerrSettings GetSettings()
+        {
+            return OverseerrSettings;
+        }
+
         public static async Task TestConnectionAsync(HttpClient httpClient, ILogger<OverseerrClient> logger, OverseerrTestSettings settings)
         {
             var testSuccessful = false;
@@ -244,7 +249,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr
                 {
                     try
                     {
-                        var show = await GetTvShowDetailsAsync(new TvShowRequest(null, int.MinValue), showId);
+                        var show = await GetTvShowDetailsAsync(new TvShowRequest(null, int.MinValue, string.Empty), showId);
                         tvShows.Add(show);
                     }
                     catch (System.Exception ex)

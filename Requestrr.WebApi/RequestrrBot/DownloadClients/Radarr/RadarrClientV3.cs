@@ -259,13 +259,34 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
 
             var jsonMovie = await SearchMovieByMovieDbId(int.Parse(movie.TheMovieDbId));
 
+            int[] tags = category.Tags;
+            if (RadarrSettings.AutoTagRequesters)
+            {
+                try
+                {
+                    tags = await RequesterTagHelper.GetTagsWithRequester(
+                        category.Tags,
+                        request.User.Username,
+                        BaseURL,
+                        async () => await GetTagsAsync(),
+                        async label => await CreateTagAsync(label),
+                        t => t.label,
+                        t => t.id,
+                        _logger);
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to create/resolve requester tag for user \"{request.User.Username}\", proceeding without user tag");
+                }
+            }
+
             var response = await HttpPostAsync($"{BaseURL}/movie", JsonConvert.SerializeObject(new
             {
                 title = jsonMovie.title,
                 qualityProfileId = category.ProfileId,
                 titleSlug = jsonMovie.titleSlug,
                 monitored = RadarrSettings.MonitorNewRequests,
-                tags = JToken.FromObject(category.Tags),
+                tags = JToken.FromObject(tags),
                 images = new string[0],
                 tmdbId = int.Parse(movie.TheMovieDbId),
                 year = jsonMovie.year,
@@ -312,7 +333,28 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
                 throw new System.Exception($"An error occurred while requesting movie \"{movie.Title}\" from Radarr, could not find category with id {request.CategoryId}");
             }
 
-            radarrMovie.tags = JToken.FromObject(category.Tags);
+            int[] tags = category.Tags;
+            if (RadarrSettings.AutoTagRequesters)
+            {
+                try
+                {
+                    tags = await RequesterTagHelper.GetTagsWithRequester(
+                        category.Tags,
+                        request.User.Username,
+                        BaseURL,
+                        async () => await GetTagsAsync(),
+                        async label => await CreateTagAsync(label),
+                        t => t.label,
+                        t => t.id,
+                        _logger);
+                }
+                catch (System.Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to create/resolve requester tag for user \"{request.User.Username}\", proceeding without user tag");
+                }
+            }
+
+            radarrMovie.tags = JToken.FromObject(tags);
             radarrMovie.qualityProfileId = category.ProfileId;
             radarrMovie.minimumAvailability = category.MinimumAvailability;
             radarrMovie.monitored = RadarrSettings.MonitorNewRequests;
@@ -411,6 +453,21 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<JSONMovie>(jsonResponse);
+        }
+
+        private async Task<IList<JSONTag>> GetTagsAsync()
+        {
+            var response = await HttpGetAsync($"{BaseURL}/tag");
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<IList<JSONTag>>(jsonResponse);
+        }
+
+        private async Task<JSONTag> CreateTagAsync(string label)
+        {
+            var response = await HttpPostAsync($"{BaseURL}/tag", JsonConvert.SerializeObject(new { label, id = 0 }));
+            await response.ThrowIfNotSuccessfulAsync("RadarrTagCreation failed", x => x.error);
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<JSONTag>(jsonResponse);
         }
 
         private Task<HttpResponseMessage> HttpGetAsync(string url)

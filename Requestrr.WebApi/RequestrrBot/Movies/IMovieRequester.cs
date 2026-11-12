@@ -10,5 +10,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
     public class MovieRequestResult
     {
         public bool WasDenied { get; set; }
+        public bool IsPending { get; set; }
+        public int? RequestId { get; set; }
     }
 }

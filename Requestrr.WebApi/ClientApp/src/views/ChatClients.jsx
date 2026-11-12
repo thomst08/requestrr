@@ -15,13 +15,13 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import { useEffect, useState } from "react";
-import { Oval } from 'react-loader-spinner'
-import { useDispatch } from 'react-redux';
-import { Alert } from "reactstrap";
-import { testSettings } from "../store/actions/ChatClientsActions"
-import { getSettings } from "../store/actions/ChatClientsActions"
-import { save } from "../store/actions/ChatClientsActions"
+import {useEffect, useState} from "react";
+import {Oval} from 'react-loader-spinner'
+import {useDispatch} from 'react-redux';
+import {Alert} from "reactstrap";
+import {testSettings} from "../store/actions/ChatClientsActions"
+import {getSettings} from "../store/actions/ChatClientsActions"
+import {save} from "../store/actions/ChatClientsActions"
 import MultiDropdown from "../components/Inputs/MultiDropdown"
 import Dropdown from "../components/Inputs/Dropdown"
 
@@ -68,6 +68,14 @@ function ChatClients(props) {
   const [tvShowRoles, setTvShowRoles] = useState([]);
   const [movieRoles, setMovieRoles] = useState([]);
   const [musicRoles, setMusicRoles] = useState([]);
+
+  const [requestApprovalEnabled, setRequestApprovalEnabled] = useState(false);
+  const [requestApprovalAdminRoleIds, setRequestApprovalAdminRoleIds] = useState([]);
+  const [requestApprovalAdminChannelIds, setRequestApprovalAdminChannelIds] = useState([]);
+  const [requestApprovalAdminChannelAllRequests, setRequestApprovalAdminChannelAllRequests] = useState(false);
+  const [requestApprovalEmojiApprove, setRequestApprovalEmojiApprove] = useState("✅");
+  const [requestApprovalEmojiDeny, setRequestApprovalEmojiDeny] = useState("❌");
+
   const [automaticallyNotifyRequesters, setAutomaticallyNotifyRequesters] = useState(true);
   const [notificationMode, setNotificationMode] = useState("PrivateMessages");
   const [notificationChannels, setNotificationChannels] = useState([]);
@@ -91,6 +99,12 @@ function ChatClients(props) {
         setTvShowRoles(data.payload.tvShowRoles);
         setMovieRoles(data.payload.movieRoles);
         setMusicRoles(data.payload.musicRoles);
+        setRequestApprovalEnabled(data.payload.requestApprovalEnabled)
+        setRequestApprovalAdminRoleIds(data.payload.requestApprovalAdminRoleIds || []);
+        setRequestApprovalAdminChannelIds(data.payload.requestApprovalAdminChannelIds || []);
+        setRequestApprovalAdminChannelAllRequests(data.payload.requestApprovalAdminChannelAllRequests || false);
+        setRequestApprovalEmojiApprove(data.payload.requestApprovalEmojiApprove || "✅");
+        setRequestApprovalEmojiDeny(data.payload.requestApprovalEmojiDeny || "❌");
         setAutomaticallyNotifyRequesters(data.payload.automaticallyNotifyRequesters);
         setNotificationMode(data.payload.notificationMode);
         setNotificationChannels(data.payload.notificationChannels);
@@ -119,8 +133,6 @@ function ChatClients(props) {
   }, [botTokenChanged]);
 
 
-
-
   const validateChatClient = () => {
     return /\S/.test(chatClient);
   };
@@ -132,7 +144,6 @@ function ChatClients(props) {
   const validateBotToken = () => {
     return /\S/.test(botToken);
   };
-
 
 
   // const onChatClientChange = (event) => {
@@ -169,7 +180,6 @@ function ChatClients(props) {
   };
 
 
-
   const onSaving = (e) => {
     e.preventDefault();
 
@@ -192,6 +202,12 @@ function ChatClients(props) {
           tvShowRoles: tvShowRoles,
           movieRoles: movieRoles,
           musicRoles: musicRoles,
+          requestApprovalEnabled: requestApprovalEnabled,
+          requestApprovalAdminRoleIds: requestApprovalAdminRoleIds,
+          requestApprovalAdminChannelIds: requestApprovalAdminChannelIds,
+          requestApprovalAdminChannelAllRequests: requestApprovalAdminChannelAllRequests,
+          requestApprovalEmojiApprove: requestApprovalEmojiApprove,
+          requestApprovalEmojiDeny: requestApprovalEmojiDeny,
           enableRequestsThroughDirectMessages: enableRequestsThroughDirectMessages,
           automaticallyNotifyRequesters: automaticallyNotifyRequesters,
           notificationMode: notificationMode,
@@ -286,17 +302,17 @@ function ChatClients(props) {
       linkElement.classList.add("d-none");
 
       // let thisRef = this;
-      setTimeout(() => { setIsCopyingLink(false) }, 3000);
+      setTimeout(() => {
+        setIsCopyingLink(false)
+      }, 3000);
     }
   };
 
 
-
-
-
   return (
     <>
-      <UserHeader title="Chat Client" description="This page is for configuring your bot to your favorite chatting application" />
+      <UserHeader title="Chat Client"
+                  description="This page is for configuring your bot to your favorite chatting application"/>
       <Container className="mt--7" fluid>
         <Row>
           <Col className="order-xl-1" xl="12">
@@ -333,12 +349,13 @@ function ChatClients(props) {
                           >
                             Chat Client
                           </label>
-                          <Input id="input-client" value="Discord" disabled="disabled" className="form-control" type="text" />
+                          <Input id="input-client" value="Discord" disabled="disabled" className="form-control"
+                                 type="text"/>
                         </FormGroup>
                       </Col>
                     </Row>
                   </div>
-                  <hr className="my-4" />
+                  <hr className="my-4"/>
                   <div>
                     <h6 className="heading-small text-muted mb-4">
                       Discord Bot Settings
@@ -363,9 +380,9 @@ function ChatClients(props) {
                           />
                           {
                             clientIdInvalid ? (
-                              <Alert className="mt-3" color="warning">
-                                <strong>Client id is required.</strong>
-                              </Alert>)
+                                <Alert className="mt-3" color="warning">
+                                  <strong>Client id is required.</strong>
+                                </Alert>)
                               : null
                           }
                         </FormGroup>
@@ -387,9 +404,9 @@ function ChatClients(props) {
                           />
                           {
                             botTokenInvalid ? (
-                              <Alert className="mt-3" color="warning">
-                                <strong>Bot token is required.</strong>
-                              </Alert>)
+                                <Alert className="mt-3" color="warning">
+                                  <strong>Bot token is required.</strong>
+                                </Alert>)
                               : null
                           }
                         </FormGroup>
@@ -406,9 +423,13 @@ function ChatClients(props) {
                             labelField="name"
                             valueField="id"
                             dropdownHandle={false}
-                            selectedItems={tvShowRoles.map(x => { return { name: x, id: x } })}
-                            items={tvShowRoles.map(x => { return { name: x, id: x } })}
-                            onChange={newTvShowRoles => setTvShowRoles(newTvShowRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                            selectedItems={tvShowRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            items={tvShowRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            onChange={newTvShowRoles => setTvShowRoles(newTvShowRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))}/>
                         </FormGroup>
                       </Col>
                       <Col lg="6">
@@ -421,11 +442,17 @@ function ChatClients(props) {
                             labelField="name"
                             valueField="id"
                             dropdownHandle={false}
-                            selectedItems={movieRoles.map(x => { return { name: x, id: x } })}
-                            items={movieRoles.map(x => { return { name: x, id: x } })}
-                            onChange={newMovieRoles => setMovieRoles(newMovieRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                            selectedItems={movieRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            items={movieRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            onChange={newMovieRoles => setMovieRoles(newMovieRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))}/>
                         </FormGroup>
                       </Col>
+                    </Row>
+                    <Row>
                       <Col lg="6">
                         <FormGroup>
                           <MultiDropdown
@@ -436,9 +463,13 @@ function ChatClients(props) {
                             labelField="name"
                             valueField="id"
                             dropdownHandle={false}
-                            selectedItems={musicRoles.map(x => { return { name: x, id: x } })}
-                            items={musicRoles.map(x => { return { name: x, id: x } })}
-                            onChange={newMusicRoles => setMusicRoles(newMusicRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))} />
+                            selectedItems={musicRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            items={musicRoles.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            onChange={newMusicRoles => setMusicRoles(newMusicRoles.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))}/>
                         </FormGroup>
                       </Col>
                     </Row>
@@ -453,9 +484,13 @@ function ChatClients(props) {
                             labelField="name"
                             valueField="id"
                             dropdownHandle={false}
-                            selectedItems={monitoredChannels.map(x => { return { name: x, id: x } })}
-                            items={monitoredChannels.map(x => { return { name: x, id: x } })}
-                            onChange={newMonitoredChannels => setMonitoredChannels(newMonitoredChannels.filter(x => /\S/.test(x.id)).map(x => x.id.trim().replace(/#/g, '').replace(/\s+/g, '-')))} />
+                            selectedItems={monitoredChannels.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            items={monitoredChannels.map(x => {
+                              return {name: x, id: x}
+                            })}
+                            onChange={newMonitoredChannels => setMonitoredChannels(newMonitoredChannels.filter(x => /\S/.test(x.id)).map(x => x.id.trim().replace(/#/g, '').replace(/\s+/g, '-')))}/>
                         </FormGroup>
                       </Col>
                     </Row>
@@ -479,6 +514,169 @@ function ChatClients(props) {
                       </Col>
                     </Row>
                   </div>
+                  <hr className="my-4"/>
+                  <div>
+                    <h6 className="heading-small text-muted mt-4">
+                      Discord Request Approval Settings
+                    </h6>
+                  </div>
+                  <div className="pl-lg-4">
+                    <Row>
+                      <Col md="12">
+                        <FormGroup className="custom-control custom-control-alternative custom-checkbox mb-3">
+                          <Input
+                            className="custom-control-input"
+                            id="adminChannelEnableApproval"
+                            type="checkbox"
+                            onChange={e => {
+                              setRequestApprovalEnabled(x => !x);
+                            }}
+                            checked={requestApprovalEnabled}
+                          />
+                          <label
+                            className="custom-control-label"
+                            htmlFor="adminChannelEnableApproval"
+                          >
+                            <span
+                              className="text-muted">Enable Approvals</span>
+                          </label>
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <span hidden={!requestApprovalEnabled}>
+                      <Row>
+                        <Col lg="6">
+                          <FormGroup>
+                            <MultiDropdown
+                              name="Admin role ids for approvals"
+                              create={true}
+                              searchable={true}
+                              placeholder="Enter discord role ids for request approvals."
+                              labelField="name"
+                              valueField="id"
+                              dropdownHandle={false}
+                              selectedItems={requestApprovalAdminRoleIds.map(x => {
+                                return {name: x, id: x}
+                              })}
+                              items={requestApprovalAdminRoleIds.map(x => {
+                                return {name: x, id: x}
+                              })}
+                              onChange={newAdminIds => setRequestApprovalAdminRoleIds(newAdminIds.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))}/>
+                          </FormGroup>
+                        </Col>
+                        <Col lg="6">
+                          <FormGroup>
+                            <MultiDropdown
+                              name="Admin channel ids for request (approvals)"
+                              create={true}
+                              searchable={true}
+                              placeholder="Enter discord channel ids for request approvals."
+                              labelField="name"
+                              valueField="id"
+                              dropdownHandle={false}
+                              selectedItems={requestApprovalAdminChannelIds.map(x => {
+                                return {name: x, id: x}
+                              })}
+                              items={requestApprovalAdminChannelIds.map(x => {
+                                return {name: x, id: x}
+                              })}
+                              onChange={newChannelIds => setRequestApprovalAdminChannelIds(newChannelIds.filter(x => /\S/.test(x.id)).map(x => x.id.trim()))}/>
+                          </FormGroup>
+                        </Col>
+                        <Col md="12">
+                          <FormGroup>
+                            {
+                              (!isLoading) && (
+                                (() => {
+                                  const warnings = [];
+                                  if ((!requestApprovalAdminRoleIds || requestApprovalAdminRoleIds.length === 0) && (!requestApprovalAdminChannelIds || requestApprovalAdminChannelIds.length === 0)) {
+                                    warnings.push("No request approval roles are filled. No requests can be seen or approved.");
+                                  } else {
+                                    if (!requestApprovalAdminRoleIds || requestApprovalAdminRoleIds.length === 0) {
+                                      warnings.push("No admin role ids are configured. Requests that require approval will have no one able to approve/deny them.");
+                                    }
+                                    if (!requestApprovalAdminChannelIds || requestApprovalAdminChannelIds.length === 0) {
+                                      warnings.push("No admin channel ids are configured. Pending approvals will not be posted to any admin channel.");
+                                    }
+                                  }
+                                  if (warnings.length === 0) {
+                                    return null;
+                                  }
+                                  return (
+                                    <div className="mt-4">
+                                      <Alert className="mb-0" color="warning">
+                                        <strong>Approvals warning:</strong> {warnings.join(" ")}
+                                      </Alert>
+                                    </div>
+                                  );
+                                })()
+                              )
+                            }
+                          </FormGroup>
+                        </Col>
+                        <Col lg="6">
+                          <FormGroup>
+                            <label
+                              className="form-control-label"
+                              htmlFor="input-approval-emoji-approve"
+                            >
+                              Approval emoji (Unicode only)
+                            </label>
+                            <Input
+                              value={requestApprovalEmojiApprove}
+                              onChange={e => setRequestApprovalEmojiApprove(e.target.value)}
+                              className="form-control-alternative"
+                              id="input-approval-emoji-approve"
+                              placeholder="✅"
+                              type="text"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col lg="6">
+                          <FormGroup>
+                            <label
+                              className="form-control-label"
+                              htmlFor="input-approval-emoji-deny"
+                            >
+                              Deny emoji (Unicode only)
+                            </label>
+                            <Input
+                              value={requestApprovalEmojiDeny}
+                              onChange={e => setRequestApprovalEmojiDeny(e.target.value)}
+                              className="form-control-alternative"
+                              id="input-approval-emoji-deny"
+                              placeholder="❌"
+                              type="text"
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                      
+                      <Row>
+                        <Col md="12">
+                          <FormGroup className="custom-control custom-control-alternative custom-checkbox mb-3">
+                            <Input
+                              className="custom-control-input"
+                              id="adminChannelAllRequests"
+                              type="checkbox"
+                              onChange={e => {
+                                setRequestApprovalAdminChannelAllRequests(!requestApprovalAdminChannelAllRequests);
+                              }}
+                              checked={requestApprovalAdminChannelAllRequests}
+                            />
+                            <label
+                              className="custom-control-label"
+                              htmlFor="adminChannelAllRequests"
+                            >
+                              <span
+                                className="text-muted">Send all requests to admin channel(s), not only pending ones.</span>
+                            </label>
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                    </span>
+                  </div>
+                  <hr className="my-4"/>
                   <div>
                     <h6 className="heading-small text-muted mt-4">
                       Discord Notification Settings
@@ -490,8 +688,11 @@ function ChatClients(props) {
                         <Dropdown
                           name="Notifications"
                           value={notificationMode}
-                          items={[{ name: "Disabled", value: "Disabled" }, { name: "Via private messages", value: "PrivateMessages" }, { name: "Via channel(s)", value: "Channels" }]}
-                          onChange={newNotificationMode => setNotificationMode(newNotificationMode)} />
+                          items={[{name: "Disabled", value: "Disabled"}, {
+                            name: "Via private messages",
+                            value: "PrivateMessages"
+                          }, {name: "Via channel(s)", value: "Channels"}]}
+                          onChange={newNotificationMode => setNotificationMode(newNotificationMode)}/>
                       </Col>
                       <Col lg="6">
                         {
@@ -506,9 +707,13 @@ function ChatClients(props) {
                                   labelField="name"
                                   valueField="id"
                                   dropdownHandle={false}
-                                  selectedItems={notificationChannels.map(x => { return { name: x, id: x } })}
-                                  items={notificationChannels.map(x => { return { name: x, id: x } })}
-                                  onChange={newNotificationChannels => setNotificationChannels(newNotificationChannels.filter(x => /\S/.test(x.id)).map(x => x.id.trim().replace(/#/g, '').replace(/\s+/g, '-')))} />
+                                  selectedItems={notificationChannels.map(x => {
+                                    return {name: x, id: x}
+                                  })}
+                                  items={notificationChannels.map(x => {
+                                    return {name: x, id: x}
+                                  })}
+                                  onChange={newNotificationChannels => setNotificationChannels(newNotificationChannels.filter(x => /\S/.test(x.id)).map(x => x.id.trim().replace(/#/g, '').replace(/\s+/g, '-')))}/>
                               </FormGroup>
                             </>
                             : null
@@ -525,7 +730,9 @@ function ChatClients(props) {
                                   className="custom-control-input"
                                   id="automaticRequests"
                                   type="checkbox"
-                                  onChange={e => { setAutomaticallyNotifyRequesters(!automaticallyNotifyRequesters); }}
+                                  onChange={e => {
+                                    setAutomaticallyNotifyRequesters(!automaticallyNotifyRequesters);
+                                  }}
                                   checked={automaticallyNotifyRequesters}
                                 />
                                 <label
@@ -554,14 +761,16 @@ function ChatClients(props) {
                             className="custom-control-input"
                             id="enableRequestDM"
                             type="checkbox"
-                            onChange={e => { setEnableRequestsThroughDirectMessages(!enableRequestsThroughDirectMessages); }}
+                            onChange={e => {
+                              setEnableRequestsThroughDirectMessages(!enableRequestsThroughDirectMessages);
+                            }}
                             checked={enableRequestsThroughDirectMessages}
                           />
                           <label
                             className="custom-control-label"
                             htmlFor="enableRequestDM"
                           >
-                            <span className="text-muted">Enable requesting via a private message, all role restrictions will be ignored, even on the servers.<br /><strong>(It might take up to an hour for the commands to show up on your servers.)</strong></span>
+                            <span className="text-muted">Enable requesting via a private message, all role restrictions will be ignored, even on the servers.<br/><strong>(It might take up to an hour for the commands to show up on your servers.)</strong></span>
                           </label>
                         </FormGroup>
                       </Col>
@@ -573,7 +782,9 @@ function ChatClients(props) {
                             className="custom-control-input"
                             id="deleteRequestMessages"
                             type="checkbox"
-                            onChange={e => { setAutomaticallyPurgeCommandMessages(!automaticallyPurgeCommandMessages); }}
+                            onChange={e => {
+                              setAutomaticallyPurgeCommandMessages(!automaticallyPurgeCommandMessages);
+                            }}
                             checked={automaticallyPurgeCommandMessages}
                           />
                           <label
@@ -595,9 +806,9 @@ function ChatClients(props) {
                       {
                         testSettingsRequested && !isTestingSettings ?
                           !testSettingsSuccess ? (
-                            <Alert className="text-center" color="danger">
-                              <strong>{testSettingsError}.</strong>
-                            </Alert>)
+                              <Alert className="text-center" color="danger">
+                                <strong>{testSettingsError}.</strong>
+                              </Alert>)
                             : <Alert className="text-center" color="success">
                               <strong>The specified settings are valid.</strong>
                             </Alert>
@@ -607,31 +818,35 @@ function ChatClients(props) {
                     <Row>
                       <Col>
                         <FormGroup className="text-right">
-                          <Input id="discordlink" readOnly={true} className="d-none" value={"https://discord.com/api/oauth2/authorize?client_id=" + clientId + "&permissions=522304&scope=bot%20applications.commands"} />
-                          <button onClick={onTestSettings} disabled={!(validateBotToken() && validateClientId())} className="btn mt-3 btn-icon btn-3 btn-default" type="button">
+                          <Input id="discordlink" readOnly={true} className="d-none"
+                                 value={"https://discord.com/api/oauth2/authorize?client_id=" + clientId + "&permissions=522304&scope=bot%20applications.commands"}/>
+                          <button onClick={onTestSettings} disabled={!(validateBotToken() && validateClientId())}
+                                  className="btn mt-3 btn-icon btn-3 btn-default" type="button">
                             <span className="btn-inner--icon">
                               {
                                 isTestingSettings ? (
-                                  <Oval
-                                    wrapperClass="loader"
-                                    type="Oval"
-                                    color="#11cdef"
-                                    height={19}
-                                    width={19}
-                                  />)
+                                    <Oval
+                                      wrapperClass="loader"
+                                      type="Oval"
+                                      color="#11cdef"
+                                      height={19}
+                                      width={19}
+                                    />)
                                   : (<i className="fas fa-cogs"></i>)
                               }</span>
                             <span className="btn-inner--text">Test Settings</span>
                           </button>
-                          <button onClick={onGenerateInviteLink} disabled={!(validateBotToken() && validateClientId())} className="btn mt-3 btn-icon btn-3 btn-info" type="button">
+                          <button onClick={onGenerateInviteLink} disabled={!(validateBotToken() && validateClientId())}
+                                  className="btn mt-3 btn-icon btn-3 btn-info" type="button">
                             <span className="btn-inner--icon"><i className="fas fa-copy"></i></span>
-                            <span className="btn-inner--text">{isCopyingLink ? "Copied to clipboard!" : "Copy Invite Link"}</span>
+                            <span
+                              className="btn-inner--text">{isCopyingLink ? "Copied to clipboard!" : "Copy Invite Link"}</span>
                           </button>
                         </FormGroup>
                       </Col>
                     </Row>
                   </div>
-                  <hr className="my-4" />
+                  <hr className="my-4"/>
                   <h6 className="heading-small text-muted mb-4">
                     Chat Command Options
                   </h6>
@@ -641,8 +856,10 @@ function ChatClients(props) {
                         <Dropdown
                           name="Language"
                           value={language}
-                          items={availableLanguages.map(x => { return { name: x, value: x } })}
-                          onChange={newLanguage => setLanguage(newLanguage)} />
+                          items={availableLanguages.map(x => {
+                            return {name: x, value: x}
+                          })}
+                          onChange={newLanguage => setLanguage(newLanguage)}/>
                       </Col>
                     </Row>
                     <Row>
@@ -651,9 +868,9 @@ function ChatClients(props) {
                           {
                             saveAttempted && !isSaving ?
                               !saveSuccess ? (
-                                <Alert className="text-center" color="danger">
-                                  <strong>{saveError}</strong>
-                                </Alert>)
+                                  <Alert className="text-center" color="danger">
+                                    <strong>{saveError}</strong>
+                                  </Alert>)
                                 : <Alert className="text-center" color="success">
                                   <strong>Settings updated successfully.</strong>
                                 </Alert>
@@ -661,7 +878,8 @@ function ChatClients(props) {
                           }
                         </FormGroup>
                         <FormGroup className="text-right">
-                          <button className="btn btn-icon btn-3 btn-primary" onClick={onSaving} disabled={isSaving} type="button">
+                          <button className="btn btn-icon btn-3 btn-primary" onClick={onSaving} disabled={isSaving}
+                                  type="button">
                             <span className="btn-inner--icon"><i className="fas fa-save"></i></span>
                             <span className="btn-inner--text">Save Changes</span>
                           </button>

@@ -9,6 +9,7 @@ using Requestrr.WebApi.RequestrrBot.DownloadClients;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Ombi;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Overseerr;
 using Requestrr.WebApi.RequestrrBot.DownloadClients.Radarr;
+using Requestrr.WebApi.RequestrrBot.Approvals;
 using Requestrr.WebApi.RequestrrBot.Notifications;
 using Requestrr.WebApi.RequestrrBot.Notifications.Movies;
 
@@ -18,6 +19,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
     {
         private readonly DiscordSettingsProvider _settingsProvider;
         private readonly MovieNotificationsRepository _notificationsRepository;
+        private readonly RequestApprovalRepository _approvalRepository;
         private OverseerrClient _overseerrClient;
         private OmbiClient _ombiDownloadClient;
         private RadarrClient _radarrDownloadClient;
@@ -25,12 +27,14 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
         public MovieWorkflowFactory(
             DiscordSettingsProvider settingsProvider,
             MovieNotificationsRepository notificationsRepository,
+            RequestApprovalRepository approvalRepository,
             OverseerrClient overseerrClient,
             OmbiClient ombiDownloadClient,
             RadarrClient radarrDownloadClient)
         {
             _settingsProvider = settingsProvider;
             _notificationsRepository = notificationsRepository;
+            _approvalRepository = approvalRepository;
             _overseerrClient = overseerrClient;
             _ombiDownloadClient = ombiDownloadClient;
             _radarrDownloadClient = radarrDownloadClient;
@@ -44,7 +48,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
                                                 categoryId,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
-                                                new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
+                                                new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings), _settingsProvider, _approvalRepository),
                                                 CreateMovieNotificationWorkflow(interaction, settings));
         }
 
@@ -63,7 +67,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
                                                 categoryId,
                                                 GetMovieClient<IMovieSearcher>(settings),
                                                 GetMovieClient<IMovieRequester>(settings),
-                                                new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings)),
+                                                new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings), _settingsProvider, _approvalRepository),
                                                 CreateMovieNotificationWorkflow(interaction, settings));
         }
 
@@ -97,7 +101,7 @@ namespace Requestrr.WebApi.RequestrrBot.Movies
 
         private IMovieNotificationWorkflow CreateMovieNotificationWorkflow(DiscordInteraction interaction, DiscordSettings settings)
         {
-            var userInterface = new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings));
+            var userInterface = new DiscordMovieUserInterface(interaction, GetMovieClient<IMovieSearcher>(settings), _settingsProvider, _approvalRepository);
             IMovieNotificationWorkflow movieNotificationWorkflow = new DisabledMovieNotificationWorkflow(userInterface);
 
             if (settings.NotificationMode != NotificationMode.Disabled)

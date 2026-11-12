@@ -39,6 +39,12 @@ namespace Requestrr.WebApi.Controllers.ChatClients
                 TvShowRoles = _chatClientsSettings.Discord.TvShowRoles ?? Array.Empty<string>(),
                 MovieRoles = _chatClientsSettings.Discord.MovieRoles ?? Array.Empty<string>(),
                 MusicRoles = _chatClientsSettings.Discord.MusicRoles ?? Array.Empty<string>(),
+                RequestApprovalAdminRoleIds = _chatClientsSettings.Discord.RequestApprovalAdminRoleIds ?? Array.Empty<string>(),
+                RequestApprovalAdminChannelIds = _chatClientsSettings.Discord.RequestApprovalAdminChannelIds ?? Array.Empty<string>(),
+                RequestApprovalAdminChannelAllRequests = _chatClientsSettings.Discord.RequestApprovalAdminChannelAllRequests,
+                RequestApprovalEmojiApprove = _chatClientsSettings.Discord.RequestApprovalEmojiApprove,
+                RequestApprovalEmojiDeny = _chatClientsSettings.Discord.RequestApprovalEmojiDeny,
+                RequestApprovalEnabled = _chatClientsSettings.Discord.RequestApprovalEnabled,
                 MonitoredChannels = _chatClientsSettings.Discord.MonitoredChannels ?? Array.Empty<string>(),
                 AutomaticallyNotifyRequesters = _chatClientsSettings.Discord.AutomaticallyNotifyRequesters,
                 NotificationMode = _chatClientsSettings.Discord.NotificationMode,
@@ -144,6 +150,16 @@ namespace Requestrr.WebApi.Controllers.ChatClients
                 return BadRequest("Invalid notification channels, please make sure to enter the discord channel ids.");
             }
 
+            if ((model.RequestApprovalAdminRoleIds ?? Array.Empty<string>()).Any(x => !ulong.TryParse(x, System.Globalization.NumberStyles.Integer, null, out _)))
+            {
+                return BadRequest("Invalid admin role ids, please make sure to enter the discord role ids.");
+            }
+
+            if ((model.RequestApprovalAdminChannelIds ?? Array.Empty<string>()).Any(x => !ulong.TryParse(x, System.Globalization.NumberStyles.Integer, null, out _)))
+            {
+                return BadRequest("Invalid admin channel ids, please make sure to enter the discord channel ids.");
+            }
+
             if (model.MonitoredChannels.Any(x => !ulong.TryParse(x, System.Globalization.NumberStyles.Integer, null, out _)))
             {
                 return BadRequest("Invalid monitored channels channels, please make sure to enter the monitored channel ids.");
@@ -155,6 +171,12 @@ namespace Requestrr.WebApi.Controllers.ChatClients
             _chatClientsSettings.Discord.TvShowRoles = (model.TvShowRoles ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
             _chatClientsSettings.Discord.MovieRoles = (model.MovieRoles ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
             _chatClientsSettings.Discord.MusicRoles = (model.MusicRoles ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+            _chatClientsSettings.Discord.RequestApprovalAdminRoleIds = (model.RequestApprovalAdminRoleIds ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+            _chatClientsSettings.Discord.RequestApprovalAdminChannelIds = (model.RequestApprovalAdminChannelIds ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+            _chatClientsSettings.Discord.RequestApprovalAdminChannelAllRequests = model.RequestApprovalAdminChannelAllRequests;
+            _chatClientsSettings.Discord.RequestApprovalEmojiApprove = model.RequestApprovalEmojiApprove?.Trim();
+            _chatClientsSettings.Discord.RequestApprovalEmojiDeny = model.RequestApprovalEmojiDeny?.Trim();
+            _chatClientsSettings.Discord.RequestApprovalEnabled = model.RequestApprovalEnabled;
             _chatClientsSettings.Discord.EnableRequestsThroughDirectMessages = model.EnableRequestsThroughDirectMessages;
             _chatClientsSettings.Discord.MonitoredChannels = (model.MonitoredChannels ?? Array.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
 

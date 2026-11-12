@@ -17,6 +17,9 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
         public static string IssueLabel = "[Issue]";
         public static string IssueTitle = "[Title]";
         public static string IssueUsername = "[Username]";
+        public static string RequestStatus = "[RequestStatus]";
+        public static string ApproveEmoji = "[ApproveEmoji]";
+        public static string DenyEmoji = "[DenyEmoji]";
 
         public static string FullCommandList = "[FullCommandList]";
 
@@ -171,6 +174,11 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
         [JsonProperty("Discord.Command.Movie.Request.Success")]
         public string DiscordCommandMovieRequestSuccess { get; set; }
 
+        [JsonProperty("Discord.Command.Movie.Request.Pending")]
+        public string DiscordCommandMovieRequestPending { get; set; }
+
+        [JsonProperty("Discord.Command.Movie.Request.Pending.Silent")]
+        public string DiscordCommandMovieRequestPendingSilent { get; set; }
         [JsonProperty("Discord.Command.RequestButtonDenied")]
         public string DiscordCommandRequestButtonDenied { get; set; }
 
@@ -260,6 +268,24 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
         [JsonProperty("Discord.Command.Tv.Request.Success.AllSeasons")]
         public string DiscordCommandTvRequestSuccessAllSeasons { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.Season")]
+        public string DiscordCommandTvRequestPendingSeason { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.FutureSeasons")]
+        public string DiscordCommandTvRequestPendingFutureSeasons { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.AllSeasons")]
+        public string DiscordCommandTvRequestPendingAllSeasons { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.Season.Silent")]
+        public string DiscordCommandTvRequestPendingSeasonSilent { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.FutureSeasons.Silent")]
+        public string DiscordCommandTvRequestPendingFutureSeasonsSilent { get; set; }
+
+        [JsonProperty("Discord.Command.Tv.Request.Pending.AllSeasons.Silent")]
+        public string DiscordCommandTvRequestPendingAllSeasonsSilent { get; set; }
 
         [JsonProperty("Discord.Command.Tv.Request.Unsupported")]
         public string DiscordCommandTvRequestUnsupported { get; set; }
@@ -499,5 +525,17 @@ namespace Requestrr.WebApi.RequestrrBot.Locale
 
         [JsonProperty("Discord.Command.Music.Artist.Notification.Success")]
         public string DiscordCommandMusicArtistNotificationSuccess { get; set; }
+
+        [JsonProperty("Discord.Command.Request.Approved")]
+        public string DiscordCommandRequestApproved { get; set; }
+
+        [JsonProperty("Discord.Command.Request.Denied")]
+        public string DiscordCommandRequestDenied { get; set; }
+
+        [JsonProperty("Discord.Command.Request.Pending.Admin")]
+        public string DiscordCommandRequestPendingAdmin { get; set; }
+
+        [JsonProperty("Discord.Command.Request.Admin.Summary")]
+        public string DiscordCommandRequestAdminSummary { get; set; }
     }
 }

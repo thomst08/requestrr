@@ -145,8 +145,8 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         public async Task DisplayRequestPendingForSeasonAsync(TvShow tvShow, TvSeason requestedSeason, int requestId)
         {
             var settings = _settingsProvider.Provide();
-            var approveEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiApprove) ? "✅" : settings.ApprovalEmojiApprove.Trim();
-            var denyEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiDeny) ? "❌" : settings.ApprovalEmojiDeny.Trim();
+            var approveEmoji = string.IsNullOrWhiteSpace(settings.RequestApprovalEmojiApprove) ? "✅" : settings.RequestApprovalEmojiApprove.Trim();
+            var denyEmoji = string.IsNullOrWhiteSpace(settings.RequestApprovalEmojiDeny) ? "❌" : settings.RequestApprovalEmojiDeny.Trim();
             var baseEmbed = GenerateTvShowDetailsAsync(tvShow);
             var footerText = string.IsNullOrWhiteSpace(baseEmbed.Footer?.Text)
                 ? $"{DiscordConstants.OverseerrRequestIdMarker} {requestId}"
@@ -563,7 +563,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         private async Task SendAdminPendingMessageAsync(TvShow tvShow, DiscordEmbed embed, int requestId, string approveEmoji, string denyEmoji)
         {
             var settings = _settingsProvider.Provide();
-            if (settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            if (settings.RequestApprovalAdminChannelIds == null || !settings.RequestApprovalAdminChannelIds.Any())
             {
                 return;
             }
@@ -577,7 +577,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 .WithContent(adminPrompt)
                 .AddEmbed(embed);
 
-            foreach (var channelId in settings.AdminChannelIds)
+            foreach (var channelId in settings.RequestApprovalAdminChannelIds)
             {
                 if (!ulong.TryParse(channelId, out var parsedChannelId))
                 {
@@ -605,7 +605,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         private async Task SendAdminRequestMessageAsync(TvShow tvShow, DiscordEmbed embed, string statusMessage)
         {
             var settings = _settingsProvider.Provide();
-            if (!settings.AdminChannelAllRequests || settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            if (!settings.RequestApprovalAdminChannelAllRequests || settings.RequestApprovalAdminChannelIds == null || !settings.RequestApprovalAdminChannelIds.Any())
             {
                 return;
             }
@@ -618,7 +618,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 .WithContent(adminMessage)
                 .AddEmbed(embed);
 
-            foreach (var channelId in settings.AdminChannelIds)
+            foreach (var channelId in settings.RequestApprovalAdminChannelIds)
             {
                 if (!ulong.TryParse(channelId, out var parsedChannelId))
                 {

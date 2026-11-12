@@ -456,7 +456,7 @@ namespace Requestrr.WebApi.RequestrrBot
                     return;
                 }
 
-                if (_currentSettings.AdminRoleIds == null || !_currentSettings.AdminRoleIds.Any())
+                if (_currentSettings.RequestApprovalAdminRoleIds == null || !_currentSettings.RequestApprovalAdminRoleIds.Any())
                 {
                     return;
                 }
@@ -470,7 +470,7 @@ namespace Requestrr.WebApi.RequestrrBot
                         var member = await guild.GetMemberAsync(e.User.Id);
                         if (member?.Roles != null)
                         {
-                            isAdmin = member.Roles.Any(x => _currentSettings.AdminRoleIds.Contains(x.Id.ToString()));
+                            isAdmin = member.Roles.Any(x => _currentSettings.RequestApprovalAdminRoleIds.Contains(x.Id.ToString()));
                         }
                     }
                 }
@@ -706,12 +706,12 @@ namespace Requestrr.WebApi.RequestrrBot
 
         private bool IsAdminChannel(ulong channelId)
         {
-            if (_currentSettings?.AdminChannelIds == null || !_currentSettings.AdminChannelIds.Any())
+            if (_currentSettings?.RequestApprovalAdminChannelIds == null || !_currentSettings.RequestApprovalAdminChannelIds.Any())
             {
                 return false;
             }
 
-            foreach (var adminChannelId in _currentSettings.AdminChannelIds)
+            foreach (var adminChannelId in _currentSettings.RequestApprovalAdminChannelIds)
             {
                 if (ulong.TryParse(adminChannelId, out var parsedChannelId) && parsedChannelId == channelId)
                 {
@@ -930,9 +930,9 @@ namespace Requestrr.WebApi.RequestrrBot
 
         private string GetApprovalEmojiApprove()
         {
-            if (!string.IsNullOrWhiteSpace(_currentSettings?.ApprovalEmojiApprove))
+            if (!string.IsNullOrWhiteSpace(_currentSettings?.RequestApprovalEmojiApprove))
             {
-                return _currentSettings.ApprovalEmojiApprove.Trim();
+                return _currentSettings.RequestApprovalEmojiApprove.Trim();
             }
 
             return DefaultApprovalEmojiApprove;
@@ -940,9 +940,9 @@ namespace Requestrr.WebApi.RequestrrBot
 
         private string GetApprovalEmojiDeny()
         {
-            if (!string.IsNullOrWhiteSpace(_currentSettings?.ApprovalEmojiDeny))
+            if (!string.IsNullOrWhiteSpace(_currentSettings?.RequestApprovalEmojiDeny))
             {
-                return _currentSettings.ApprovalEmojiDeny.Trim();
+                return _currentSettings.RequestApprovalEmojiDeny.Trim();
             }
 
             return DefaultApprovalEmojiDeny;

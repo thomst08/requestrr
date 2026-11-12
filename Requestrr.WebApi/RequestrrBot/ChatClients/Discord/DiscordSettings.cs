@@ -18,11 +18,12 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         public int TvShowDownloadClientConfigurationHash { get; set; }
         public string MusicDownloadClient { get; set; }
         public int MusicDownloadClientConfigurationHash { get; set; }
-        public string[] AdminRoleIds { get; set; }
-        public string[] AdminChannelIds { get; set; }
-        public bool AdminChannelAllRequests { get; set; }
-        public string ApprovalEmojiApprove { get; set; }
-        public string ApprovalEmojiDeny { get; set; }
+        public string[] RequestApprovalAdminRoleIds { get; set; }
+        public string[] RequestApprovalAdminChannelIds { get; set; }
+        public bool RequestApprovalAdminChannelAllRequests { get; set; }
+        public string RequestApprovalEmojiApprove { get; set; }
+        public string RequestApprovalEmojiDeny { get; set; }
+        public bool RequestApprovalEnable { get; set; }
         public bool EnableRequestsThroughDirectMessages { get; set; }
         public bool AutomaticallyNotifyRequesters { get; set; }
         public string NotificationMode { get; set; }
@@ -45,11 +46,12 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                    TvShowDownloadClientConfigurationHash == settings.TvShowDownloadClientConfigurationHash &&
                    MusicDownloadClient == settings.MusicDownloadClient &&
                    MusicDownloadClientConfigurationHash == settings.MusicDownloadClientConfigurationHash &&
-                   (AdminRoleIds ?? Array.Empty<string>()).SequenceEqual(settings.AdminRoleIds ?? Array.Empty<string>()) &&
-                   (AdminChannelIds ?? Array.Empty<string>()).SequenceEqual(settings.AdminChannelIds ?? Array.Empty<string>()) &&
-                   AdminChannelAllRequests == settings.AdminChannelAllRequests &&
-                   ApprovalEmojiApprove == settings.ApprovalEmojiApprove &&
-                   ApprovalEmojiDeny == settings.ApprovalEmojiDeny &&
+                   (RequestApprovalAdminRoleIds ?? Array.Empty<string>()).SequenceEqual(settings.RequestApprovalAdminRoleIds ?? Array.Empty<string>()) &&
+                   (RequestApprovalAdminChannelIds ?? Array.Empty<string>()).SequenceEqual(settings.RequestApprovalAdminChannelIds ?? Array.Empty<string>()) &&
+                   RequestApprovalAdminChannelAllRequests == settings.RequestApprovalAdminChannelAllRequests &&
+                   RequestApprovalEmojiApprove == settings.RequestApprovalEmojiApprove &&
+                   RequestApprovalEmojiDeny == settings.RequestApprovalEmojiDeny &&
+                   RequestApprovalEnable == settings.RequestApprovalEnable &&
                    EnableRequestsThroughDirectMessages == settings.EnableRequestsThroughDirectMessages &&
                    AutomaticallyNotifyRequesters == settings.AutomaticallyNotifyRequesters &&
                    NotificationMode == settings.NotificationMode &&
@@ -73,11 +75,12 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
             hash.Add(TvShowDownloadClientConfigurationHash);
             hash.Add(MusicDownloadClient);
             hash.Add(MusicDownloadClientConfigurationHash);
-            hash.Add(AdminRoleIds);
-            hash.Add(AdminChannelIds);
-            hash.Add(AdminChannelAllRequests);
-            hash.Add(ApprovalEmojiApprove);
-            hash.Add(ApprovalEmojiDeny);
+            hash.Add(RequestApprovalAdminRoleIds);
+            hash.Add(RequestApprovalAdminChannelIds);
+            hash.Add(RequestApprovalAdminChannelAllRequests);
+            hash.Add(RequestApprovalEmojiApprove);
+            hash.Add(RequestApprovalEmojiDeny);
+            hash.Add(RequestApprovalEnable);
             hash.Add(EnableRequestsThroughDirectMessages);
             hash.Add(AutomaticallyNotifyRequesters);
             hash.Add(NotificationMode);

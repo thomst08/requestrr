@@ -21,15 +21,20 @@ namespace Requestrr.WebApi
             {
                 var botClientJson = settingsJson["BotClient"] as JObject;
 
-                var monitoredChannels = !string.IsNullOrWhiteSpace(botClientJson.GetValue("MonitoredChannels").ToString())
-                    ? botClientJson.GetValue("MonitoredChannels").ToString().Split(" ").Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
-                    : Array.Empty<string>();
+                var monitoredChannels =
+                    !string.IsNullOrWhiteSpace(botClientJson.GetValue("MonitoredChannels").ToString())
+                        ? botClientJson.GetValue("MonitoredChannels").ToString().Split(" ")
+                            .Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim())
+                        : Array.Empty<string>();
 
-                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MonitoredChannels", JToken.FromObject(monitoredChannels));
+                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MonitoredChannels",
+                    JToken.FromObject(monitoredChannels));
                 ((JObject)settingsJson["BotClient"]).Remove("MonitoredChannels");
 
-                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("TvShowRoles", JToken.FromObject(Array.Empty<string>()));
-                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MovieRoles", JToken.FromObject(Array.Empty<string>()));
+                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("TvShowRoles",
+                    JToken.FromObject(Array.Empty<string>()));
+                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MovieRoles",
+                    JToken.FromObject(Array.Empty<string>()));
 
                 settingsJson.ChatClients.Discord.EnableDirectMessageSupport = false;
 
@@ -48,9 +53,9 @@ namespace Requestrr.WebApi
             }
 
             if (settingsJson.Version.ToString().Equals("1.0.1", StringComparison.InvariantCultureIgnoreCase)
-            || settingsJson.Version.ToString().Equals("1.0.2", StringComparison.InvariantCultureIgnoreCase)
-            || settingsJson.Version.ToString().Equals("1.0.3", StringComparison.InvariantCultureIgnoreCase)
-            || settingsJson.Version.ToString().Equals("1.0.4", StringComparison.InvariantCultureIgnoreCase))
+                || settingsJson.Version.ToString().Equals("1.0.2", StringComparison.InvariantCultureIgnoreCase)
+                || settingsJson.Version.ToString().Equals("1.0.3", StringComparison.InvariantCultureIgnoreCase)
+                || settingsJson.Version.ToString().Equals("1.0.4", StringComparison.InvariantCultureIgnoreCase))
             {
                 settingsJson.Version = "1.0.5";
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
@@ -69,10 +74,12 @@ namespace Requestrr.WebApi
 
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Add("AutomaticallyNotifyRequesters", true);
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Add("NotificationMode", "PrivateMessages");
-                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("NotificationChannels", JToken.FromObject(Array.Empty<int>()));
+                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("NotificationChannels",
+                    JToken.FromObject(Array.Empty<int>()));
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Add("AutomaticallyPurgeCommandMessages", false);
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Add("DisplayHelpCommandInDMs", true);
-                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("EnableRequestsThroughDirectMessages", (bool)((JObject)settingsJson["ChatClients"]["Discord"]).GetValue("EnableDirectMessageSupport"));
+                ((JObject)settingsJson["ChatClients"]["Discord"]).Add("EnableRequestsThroughDirectMessages",
+                    (bool)((JObject)settingsJson["ChatClients"]["Discord"]).GetValue("EnableDirectMessageSupport"));
                 ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("EnableDirectMessageSupport");
 
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
@@ -116,22 +123,27 @@ namespace Requestrr.WebApi
             {
                 settingsJson.Version = "1.14.0";
 
-                if (((JObject)settingsJson["Movies"]).TryGetValue("Command", StringComparison.InvariantCultureIgnoreCase, out _))
+                if (((JObject)settingsJson["Movies"]).TryGetValue("Command",
+                        StringComparison.InvariantCultureIgnoreCase, out _))
                 {
                     ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("DisplayHelpCommandInDMs");
                     ((JObject)settingsJson["BotClient"]).Remove("CommandPrefix");
 
                     ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("TvShowRoles");
-                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("TvShowRoles", JToken.FromObject(Array.Empty<int>()));
+                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("TvShowRoles",
+                        JToken.FromObject(Array.Empty<int>()));
 
                     ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("MovieRoles");
-                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MovieRoles", JToken.FromObject(Array.Empty<int>()));
+                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MovieRoles",
+                        JToken.FromObject(Array.Empty<int>()));
 
                     ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("NotificationChannels");
-                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("NotificationChannels", JToken.FromObject(Array.Empty<int>()));
+                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("NotificationChannels",
+                        JToken.FromObject(Array.Empty<int>()));
 
                     ((JObject)settingsJson["ChatClients"]["Discord"]).Remove("MonitoredChannels");
-                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MonitoredChannels", JToken.FromObject(Array.Empty<int>()));
+                    ((JObject)settingsJson["ChatClients"]["Discord"]).Add("MonitoredChannels",
+                        JToken.FromObject(Array.Empty<int>()));
 
                     ((JObject)settingsJson["Movies"]).Remove("Command");
                     ((JObject)settingsJson["TvShows"]).Remove("Command");
@@ -159,19 +171,29 @@ namespace Requestrr.WebApi
                     {
                         Id = 0,
                         Name = "movie",
-                        ProfileId = (int)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieProfileId"),
-                        RootFolder = (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieRootFolder"),
-                        MinimumAvailability = (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieMinimumAvailability"),
-                        Tags = ((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieTags").ToObject<int[]>()
+                        ProfileId =
+                            (int)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieProfileId"),
+                        RootFolder =
+                            (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieRootFolder"),
+                        MinimumAvailability =
+                            (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue(
+                                "MovieMinimumAvailability"),
+                        Tags = ((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("MovieTags")
+                            .ToObject<int[]>()
                     },
                     new RadarrCategory
                     {
                         Id = 1,
                         Name = "movie-anime",
-                        ProfileId = (int)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeProfileId"),
-                        RootFolder = (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeRootFolder"),
-                        MinimumAvailability = (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeMinimumAvailability"),
-                        Tags = ((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeTags").ToObject<int[]>()
+                        ProfileId =
+                            (int)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeProfileId"),
+                        RootFolder =
+                            (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeRootFolder"),
+                        MinimumAvailability =
+                            (string)((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue(
+                                "AnimeMinimumAvailability"),
+                        Tags = ((JObject)settingsJson["DownloadClients"]["Radarr"]).GetValue("AnimeTags")
+                            .ToObject<int[]>()
                     },
                 };
 
@@ -184,7 +206,8 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson["DownloadClients"]["Radarr"]).Remove("AnimeMinimumAvailability");
                 ((JObject)settingsJson["DownloadClients"]["Radarr"]).Remove("AnimeTags");
 
-                ((JObject)settingsJson["DownloadClients"]["Radarr"]).Add("Categories", JToken.FromObject(radarrCategories));
+                ((JObject)settingsJson["DownloadClients"]["Radarr"]).Add("Categories",
+                    JToken.FromObject(radarrCategories));
 
                 var sonarrCategories = new[]
                 {
@@ -193,21 +216,30 @@ namespace Requestrr.WebApi
                         Id = 0,
                         Name = "tv",
                         ProfileId = (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvProfileId"),
-                        RootFolder = (string)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvRootFolder"),
-                        Tags = ((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvTags").ToObject<int[]>(),
+                        RootFolder =
+                            (string)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvRootFolder"),
+                        Tags = ((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvTags")
+                            .ToObject<int[]>(),
                         LanguageId = (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvLanguageId"),
-                        UseSeasonFolders = (bool)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvUseSeasonFolders"),
+                        UseSeasonFolders =
+                            (bool)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("TvUseSeasonFolders"),
                         SeriesType = "standard",
                     },
                     new SonarrCategory
                     {
                         Id = 1,
                         Name = "tv-anime",
-                        ProfileId = (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeProfileId"),
-                        RootFolder = (string)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeRootFolder"),
-                        Tags = ((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeTags").ToObject<int[]>(),
-                        LanguageId = (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeLanguageId"),
-                        UseSeasonFolders = (bool)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeUseSeasonFolders"),
+                        ProfileId =
+                            (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeProfileId"),
+                        RootFolder =
+                            (string)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeRootFolder"),
+                        Tags = ((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeTags")
+                            .ToObject<int[]>(),
+                        LanguageId =
+                            (int)((JObject)settingsJson["DownloadClients"]["Sonarr"]).GetValue("AnimeLanguageId"),
+                        UseSeasonFolders =
+                            (bool)((JObject)settingsJson["DownloadClients"]["Sonarr"])
+                            .GetValue("AnimeUseSeasonFolders"),
                         SeriesType = "anime",
                     },
                 };
@@ -224,7 +256,8 @@ namespace Requestrr.WebApi
                 ((JObject)settingsJson["DownloadClients"]["Sonarr"]).Remove("AnimeLanguageId");
                 ((JObject)settingsJson["DownloadClients"]["Sonarr"]).Remove("AnimeUseSeasonFolders");
 
-                ((JObject)settingsJson["DownloadClients"]["Sonarr"]).Add("Categories", JToken.FromObject(sonarrCategories));
+                ((JObject)settingsJson["DownloadClients"]["Sonarr"]).Add("Categories",
+                    JToken.FromObject(sonarrCategories));
 
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
@@ -233,11 +266,14 @@ namespace Requestrr.WebApi
             {
                 settingsJson.Version = "2.1.0";
 
-                var defaultApiUserID = (string)((JObject)settingsJson["DownloadClients"]["Overseerr"]).GetValue("DefaultApiUserID");
+                var defaultApiUserID =
+                    (string)((JObject)settingsJson["DownloadClients"]["Overseerr"]).GetValue("DefaultApiUserID");
                 ((JObject)settingsJson["DownloadClients"]["Overseerr"]).Remove("DefaultApiUserID");
 
-                ((JObject)settingsJson["DownloadClients"]["Overseerr"]).Add("Movies", JToken.FromObject(new OverseerrMovieSettings { DefaultApiUserId = defaultApiUserID }));
-                ((JObject)settingsJson["DownloadClients"]["Overseerr"]).Add("TvShows", JToken.FromObject(new OverseerrTvShowSettings { DefaultApiUserId = defaultApiUserID }));
+                ((JObject)settingsJson["DownloadClients"]["Overseerr"]).Add("Movies",
+                    JToken.FromObject(new OverseerrMovieSettings { DefaultApiUserId = defaultApiUserID }));
+                ((JObject)settingsJson["DownloadClients"]["Overseerr"]).Add("TvShows",
+                    JToken.FromObject(new OverseerrTvShowSettings { DefaultApiUserId = defaultApiUserID }));
 
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }
@@ -272,8 +308,10 @@ namespace Requestrr.WebApi
                     Port = 8686,
                     ApiKey = string.Empty,
                     BaseUrl = string.Empty,
-                    Categories = new LidarrCategory[] {
-                        new LidarrCategory {
+                    Categories = new LidarrCategory[]
+                    {
+                        new LidarrCategory
+                        {
                             Id = 0,
                             Name = "music",
                             ProfileId = 1,
@@ -304,35 +342,12 @@ namespace Requestrr.WebApi
                 settingsJson.Version = "2.1.4";
 
                 var discordSettings = (JObject)settingsJson.ChatClients.Discord;
-                if (discordSettings.Property("AdminRoleIds") == null)
-                {
-                    discordSettings.Add("AdminRoleIds", JToken.FromObject(new List<string>()));
-                }
-
-                if (discordSettings.Property("AdminChannelIds") == null)
-                {
-                    discordSettings.Add("AdminChannelIds", JToken.FromObject(new List<string>()));
-                }
-
-                if (discordSettings.Property("AdminChannelAllRequests") == null)
-                {
-                    discordSettings.Add("AdminChannelAllRequests", false);
-                }
-
-                if (discordSettings.Property("ApprovalEmojiApprove") == null)
-                {
-                    discordSettings.Add("ApprovalEmojiApprove", "✅");
-                }
-
-                if (discordSettings.Property("ApprovalEmojiDeny") == null)
-                {
-                    discordSettings.Add("ApprovalEmojiDeny", "❌");
-                }
-
-                if (discordSettings.Property("AdminUserIds") != null)
-                {
-                    discordSettings.Remove("AdminUserIds");
-                }
+                discordSettings.Add("RequestApprovalAdminRoleIds", JToken.FromObject(new List<string>()));
+                discordSettings.Add("RequestApprovalAdminChannelIds", JToken.FromObject(new List<string>()));
+                discordSettings.Add("RequestApprovalAdminChannelAllRequests", false);
+                discordSettings.Add("RequestApprovalEmojiApprove", "✅");
+                discordSettings.Add("RequestApprovalEmojiDeny", "❌");
+                discordSettings.Add("RequestApprovalEnabled", false);
 
                 File.WriteAllText(settingsFilePath, JsonConvert.SerializeObject(settingsJson));
             }

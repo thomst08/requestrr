@@ -276,8 +276,8 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         public async Task DisplayRequestPendingAsync(Movie movie, int requestId)
         {
             var settings = _settingsProvider.Provide();
-            var approveEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiApprove) ? "✅" : settings.ApprovalEmojiApprove.Trim();
-            var denyEmoji = string.IsNullOrWhiteSpace(settings.ApprovalEmojiDeny) ? "❌" : settings.ApprovalEmojiDeny.Trim();
+            var approveEmoji = string.IsNullOrWhiteSpace(settings.RequestApprovalEmojiApprove) ? "✅" : settings.RequestApprovalEmojiApprove.Trim();
+            var denyEmoji = string.IsNullOrWhiteSpace(settings.RequestApprovalEmojiDeny) ? "❌" : settings.RequestApprovalEmojiDeny.Trim();
             var message = settings.AutomaticallyPurgeCommandMessages
                 ? Language.Current.DiscordCommandMovieRequestPendingSilent.ReplaceTokens(movie, new Dictionary<string, string>
                 {
@@ -368,7 +368,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         private async Task SendAdminPendingMessageAsync(Movie movie, DiscordEmbed embed, int requestId, string approveEmoji, string denyEmoji)
         {
             var settings = _settingsProvider.Provide();
-            if (settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            if (settings.RequestApprovalAdminChannelIds == null || !settings.RequestApprovalAdminChannelIds.Any())
             {
                 return;
             }
@@ -382,7 +382,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 .WithContent(adminPrompt)
                 .AddEmbed(embed);
 
-            foreach (var channelId in settings.AdminChannelIds)
+            foreach (var channelId in settings.RequestApprovalAdminChannelIds)
             {
                 if (!ulong.TryParse(channelId, out var parsedChannelId))
                 {
@@ -410,7 +410,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
         private async Task SendAdminRequestMessageAsync(Movie movie, DiscordEmbed baseEmbed, string statusMessage)
         {
             var settings = _settingsProvider.Provide();
-            if (!settings.AdminChannelAllRequests || settings.AdminChannelIds == null || !settings.AdminChannelIds.Any())
+            if (!settings.RequestApprovalAdminChannelAllRequests || settings.RequestApprovalAdminChannelIds == null || !settings.RequestApprovalAdminChannelIds.Any())
             {
                 return;
             }
@@ -424,7 +424,7 @@ namespace Requestrr.WebApi.RequestrrBot.ChatClients.Discord
                 .WithContent(adminMessage)
                 .AddEmbed(embed);
 
-            foreach (var channelId in settings.AdminChannelIds)
+            foreach (var channelId in settings.RequestApprovalAdminChannelIds)
             {
                 if (!ulong.TryParse(channelId, out var parsedChannelId))
                 {

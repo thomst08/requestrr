@@ -1,4 +1,5 @@
-﻿using DSharpPlus;
+﻿using System;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Music
                         {
                             DiscordDmChannel channel = await user.CreateDmChannelAsync();
                             await channel.SendMessageAsync(Language.Current.DiscordNotificationMusicArtistDM.ReplaceTokens(musicArtist), DiscordMusicUserInterface.GenerateMusicArtistDetails(musicArtist));
+                            await Task.Delay(TimeSpan.FromSeconds(1));
                         }
                         else
                         {

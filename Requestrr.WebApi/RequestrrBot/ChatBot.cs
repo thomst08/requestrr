@@ -64,6 +64,10 @@ namespace Requestrr.WebApi.RequestrrBot
         private readonly SemaphoreSlim _overseerrSyncGate = new SemaphoreSlim(1, 1);
         private const string DefaultApprovalEmojiApprove = "✅";
         private const string DefaultApprovalEmojiDeny = "❌";
+        private DateTime? _socketClosedAt = null;
+        private DateTime? _heartbeatSentAt = null;
+        private const int UnrecoverableHeartbeatInterval = 4;
+        private const int UnrecoverableDisconnectTimeoutMinutes = 10;
 
         public ChatBot(IServiceProvider serviceProvider, ILogger<ChatBot> logger, DiscordSettingsProvider discordSettingsProvider)
         {
@@ -122,13 +126,27 @@ namespace Requestrr.WebApi.RequestrrBot
                             SlashCommandBuilder.CleanUp();
 
                             //Delay till next restart
-                            if(_waitTimeout <= 0)
+                            if (_waitTimeout <= 0)
                                 _waitTimeout = 5;
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error while restarting the bot: " + ex.Message);
+                    }
+
+                    if (_client != null && _socketClosedAt.HasValue &&
+                        (DateTime.UtcNow - _socketClosedAt.Value).TotalMinutes >= UnrecoverableDisconnectTimeoutMinutes)
+                    {
+                        _logger.LogError($"Discord bot has been disconnected for over {UnrecoverableDisconnectTimeoutMinutes} minutes without reconnecting. Exiting process to allow container restart.");
+                        Environment.Exit(1);
+                    }
+
+                    if (_client != null && (DateTime.Now - _heartbeatSentAt.Value).TotalMinutes >=
+                        UnrecoverableHeartbeatInterval)
+                    {
+                        _logger.LogError("Discord bot heartbeat has been stopped. Restarting!");
+                        Environment.Exit(1);
                     }
 
                     await Task.Delay(5000);
@@ -145,6 +163,9 @@ namespace Requestrr.WebApi.RequestrrBot
                 _client.ComponentInteractionCreated -= DiscordComponentInteractionCreatedHandler;
                 _client.ModalSubmitted -= DiscordModalSubmittedHandler;
                 _client.MessageReactionAdded -= DiscordMessageReactionAddedHandler;
+                _client.SocketOpened -= OnSocketOpen;
+                _client.SocketClosed -= OnSocketClosed;
+                _client.Heartbeated -= Heartbeat;
                 _client.Dispose();
             }
 
@@ -193,16 +214,21 @@ namespace Requestrr.WebApi.RequestrrBot
                     _client.ComponentInteractionCreated += DiscordComponentInteractionCreatedHandler;
                     _client.ModalSubmitted += DiscordModalSubmittedHandler;
                     _client.MessageReactionAdded += DiscordMessageReactionAddedHandler;
+                    _client.SocketOpened += OnSocketOpen;
+                    _client.SocketClosed += OnSocketClosed;
+                    _client.Heartbeated += Heartbeat;
 
                     _currentGuilds = new HashSet<ulong>();
 
                     try
                     {
+                        _heartbeatSentAt = DateTime.Now;
+                        _socketClosedAt = null;
                         await _client.ConnectAsync();
                     }
                     catch (Exception ex) when (ex.InnerException is DSharpPlus.Exceptions.UnauthorizedException)
                     {
-                        _logger.LogError("Discord token is incorrect, please cehck your token settings.");
+                        _logger.LogError("Discord token is incorrect, please check your token settings.");
                         _client = null;
                     }
                     catch (Exception ex)
@@ -230,21 +256,26 @@ namespace Requestrr.WebApi.RequestrrBot
                                 try { _slashCommands.RegisterCommands(slashCommandType); }
                                 catch (System.Exception ex) { _logger.LogError(ex, "Error while registering global slash commands: " + ex.Message); }
 
+                                await Task.Delay(TimeSpan.FromSeconds(2));
+                                
                                 foreach (var guildId in _client.Guilds.Keys)
                                 {
                                     try { _slashCommands.RegisterCommands<EmptySlashCommands>(guildId); }
                                     catch (System.Exception ex) { _logger.LogError(ex, $"Error while emptying guild-specific slash commands for guid {guildId}: " + ex.Message); }
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                             }
                             else
                             {
                                 try { _slashCommands.RegisterCommands<EmptySlashCommands>(); }
                                 catch (System.Exception ex) { _logger.LogError(ex, "Error while emptying global slash commands: " + ex.Message); }
+                                await Task.Delay(TimeSpan.FromSeconds(2));
 
                                 foreach (var guildId in _client.Guilds.Keys)
                                 {
                                     try { _slashCommands.RegisterCommands(slashCommandType, guildId); }
                                     catch (System.Exception ex) { _logger.LogError(ex, $"Error while registering guild-specific slash commands for guid {guildId}: " + ex.Message); }
+                                    await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                             }
 
@@ -272,8 +303,29 @@ namespace Requestrr.WebApi.RequestrrBot
             }
         }
 
+        private Task Heartbeat(DiscordClient client, HeartbeatEventArgs args)
+        {
+            _heartbeatSentAt = DateTime.Now;
+            return Task.CompletedTask;
+        }
+
+        private Task OnSocketOpen(DiscordClient client, SocketEventArgs args)
+        {
+            _socketClosedAt = null;
+            _logger.LogDebug($"Discord socket reconnected ({DateTime.Now})");
+            return Task.CompletedTask;
+        }
+
+        private Task OnSocketClosed(DiscordClient client, SocketCloseEventArgs args)
+        {
+            _socketClosedAt = DateTime.UtcNow;
+            _logger.LogDebug($"Discord socket closed (code: {args.CloseCode}): {args.CloseMessage}");
+            return Task.CompletedTask;
+        }
+
         private async Task Connected(DiscordClient client, ReadyEventArgs args)
         {
+            _socketClosedAt = null;
             await ApplyBotConfigurationAsync(_currentSettings);
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,6 +47,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Movies
                     try
                     {
                         await NotifyUsersInChannel(movie, discordUserIds, userNotified, channel);
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     catch (System.Exception ex)
                     {

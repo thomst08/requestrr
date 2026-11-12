@@ -398,6 +398,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
                 rootFolderPath = category.RootFolder,
                 addOptions = new
                 {
+                    // monitored = _lidarrSettings.MonitorNewRequests,
                     searchForMissingAlbums = _lidarrSettings.SearchNewRequests
                 }
             }));
@@ -503,7 +504,7 @@ namespace Requestrr.WebApi.RequestrrBot.DownloadClients.Lidarr
                 Available = (jsonArtist.Statistics?.SizeOnDisk ?? -1) > 0,
                 Monitored = jsonArtist.Monitored,
                 Quality = string.Empty,
-                Requested = !jsonArtist.Monitored && (!string.IsNullOrWhiteSpace(downloadClientId) || _lidarrSettings.MonitorNewRequests) ? jsonArtist.Monitored : true,
+                Requested = !string.IsNullOrWhiteSpace(downloadClientId),
 
                 PlexUrl = string.Empty,
                 EmbyUrl = string.Empty,

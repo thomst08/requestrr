@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,6 +54,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Movies
                         {
                             var channel = await user.CreateDmChannelAsync();
                             await channel.SendMessageAsync(Language.Current.DiscordNotificationMovieDM.ReplaceTokens(movie), await DiscordMovieUserInterface.GenerateMovieDetailsAsync(movie));
+                            await Task.Delay(TimeSpan.FromSeconds(1));
                         }
                         else
                         {

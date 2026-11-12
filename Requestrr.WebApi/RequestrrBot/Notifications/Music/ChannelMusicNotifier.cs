@@ -49,6 +49,7 @@ namespace Requestrr.WebApi.RequestrrBot.Notifications.Music
                     try
                     {
                         await NotifyUsersInChannelForArtist(musicArtist, discordUserIds, userNotified, channel);
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                     catch (Exception ex)
                     {

@@ -517,7 +517,7 @@ function ChatClients(props) {
                   <hr className="my-4"/>
                   <div>
                     <h6 className="heading-small text-muted mt-4">
-                      Discord Request Approval Settings
+                      Discord Request Approval Settings (Currently Seerr only) 
                     </h6>
                   </div>
                   <div className="pl-lg-4">

@@ -1,6 +1,8 @@
 ﻿using Requestrr.WebApi.config;
 using Requestrr.WebApi.RequestrrBot;
 
+using System;
+
 namespace Requestrr.WebApi.Controllers.ChatClients
 {
     public class ChatClientsSettingsProvider
@@ -18,6 +20,12 @@ namespace Requestrr.WebApi.Controllers.ChatClients
                 TvShowRoles = settings.ChatClients.Discord.TvShowRoles.ToObject<string[]>(),
                 MovieRoles = settings.ChatClients.Discord.MovieRoles.ToObject<string[]>(),
                 MusicRoles = settings.ChatClients.Discord.MusicRoles.ToObject<string[]>(),
+                RequestApprovalAdminRoleIds = settings.ChatClients.Discord.RequestApprovalAdminRoleIds.ToObject<string[]>() ?? Array.Empty<string>(),
+                RequestApprovalAdminChannelIds = settings.ChatClients.Discord.RequestApprovalAdminChannelIds.ToObject<string[]>() ?? Array.Empty<string>(),
+                RequestApprovalAdminChannelAllRequests = (bool)settings.ChatClients.Discord.RequestApprovalAdminChannelAllRequests,
+                RequestApprovalEmojiApprove = (string)settings.ChatClients.Discord.RequestApprovalEmojiApprove,
+                RequestApprovalEmojiDeny = (string)settings.ChatClients.Discord.RequestApprovalEmojiDeny,
+                RequestApprovalEnabled = (bool)settings.ChatClients.Discord.RequestApprovalEnabled,
                 EnableRequestsThroughDirectMessages = (bool)settings.ChatClients.Discord.EnableRequestsThroughDirectMessages,
                 AutomaticallyNotifyRequesters = (bool)settings.ChatClients.Discord.AutomaticallyNotifyRequesters,
                 NotificationMode = (string)settings.ChatClients.Discord.NotificationMode,

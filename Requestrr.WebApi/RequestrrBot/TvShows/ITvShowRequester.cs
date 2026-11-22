@@ -11,5 +11,7 @@ namespace Requestrr.WebApi.RequestrrBot.TvShows
     {
         public TvShow TvShow { get; set; }
         public bool WasDenied { get; set; }
+        public bool IsPending { get; set; }
+        public int? RequestId { get; set; }
     }
 }

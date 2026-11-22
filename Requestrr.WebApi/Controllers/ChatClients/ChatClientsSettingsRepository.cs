@@ -20,6 +20,12 @@ namespace Requestrr.WebApi.Controllers.ChatClients
                 settings.ChatClients.Discord.TvShowRoles = JToken.FromObject(chatClientsSettings.Discord.TvShowRoles);
                 settings.ChatClients.Discord.MovieRoles = JToken.FromObject(chatClientsSettings.Discord.MovieRoles);
                 settings.ChatClients.Discord.MusicRoles = JToken.FromObject(chatClientsSettings.Discord.MusicRoles);
+                settings.ChatClients.Discord.RequestApprovalAdminRoleIds = JToken.FromObject(chatClientsSettings.Discord.RequestApprovalAdminRoleIds);
+                settings.ChatClients.Discord.RequestApprovalAdminChannelIds = JToken.FromObject(chatClientsSettings.Discord.RequestApprovalAdminChannelIds);
+                settings.ChatClients.Discord.RequestApprovalAdminChannelAllRequests = chatClientsSettings.Discord.RequestApprovalAdminChannelAllRequests;
+                settings.ChatClients.Discord.RequestApprovalEmojiApprove = chatClientsSettings.Discord.RequestApprovalEmojiApprove;
+                settings.ChatClients.Discord.RequestApprovalEmojiDeny = chatClientsSettings.Discord.RequestApprovalEmojiDeny;
+                settings.ChatClients.Discord.RequestApprovalEnabled = chatClientsSettings.Discord.RequestApprovalEnabled;
                 settings.ChatClients.Discord.EnableRequestsThroughDirectMessages = chatClientsSettings.Discord.EnableRequestsThroughDirectMessages;
                 settings.ChatClients.Discord.AutomaticallyNotifyRequesters = chatClientsSettings.Discord.AutomaticallyNotifyRequesters;
                 settings.ChatClients.Discord.NotificationMode = chatClientsSettings.Discord.NotificationMode;

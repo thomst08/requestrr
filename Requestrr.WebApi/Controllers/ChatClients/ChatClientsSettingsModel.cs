@@ -23,6 +23,18 @@ namespace Requestrr.WebApi.Controllers.ChatClients
 
         public string[] MusicRoles { get; set; }
 
+        public string[] RequestApprovalAdminRoleIds { get; set; }
+
+        public string[] RequestApprovalAdminChannelIds { get; set; }
+
+        public bool RequestApprovalAdminChannelAllRequests { get; set; }
+
+        public string RequestApprovalEmojiApprove { get; set; }
+
+        public string RequestApprovalEmojiDeny { get; set; }
+        
+        public bool RequestApprovalEnabled { get; set; }
+
         public bool EnableRequestsThroughDirectMessages { get; set; }
 
         public bool AutomaticallyNotifyRequesters { get; set; }

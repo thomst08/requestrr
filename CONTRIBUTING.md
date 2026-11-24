@@ -8,7 +8,7 @@ All help is welcome and greatly appreciated! If you would like to contribute to 
 
 - HTML/Typescript/Javascript editor
   - [VSCode](https://code.visualstudio.com/) is recommended. Upon opening the project, a few extensions will be automatically recommended for install.
-- .NET CORE SDK 5
+- .NET CORE SDK 10
 - NPM
 - GIT
 
